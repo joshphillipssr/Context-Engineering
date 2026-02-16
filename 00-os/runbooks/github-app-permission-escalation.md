@@ -22,9 +22,9 @@ Current role-specific GitHub Apps:
 
 | Role | App Name Pattern | Secret Prefix | Primary Operations |
 |------|------------------|---------------|-------------------|
-| Implementation Specialist | `context-engineering-implementation-specialist` | `IMPL_SPEC_` | Code changes, PR creation, branch management |
-| Compliance Officer | `context-engineering-compliance-officer` | `COMPLIANCE_` | PR reviews, status checks, issue labeling |
-| Systems Architect | `context-engineering-systems-architect` | `SYSTEMS_ARCH_` | Repository analysis, workflow planning |
+| Implementation Specialist | `context-engineering-implementation-specialist` | `IMPLEMENTATION_SPECIALIST_` | Code changes, PR creation, branch management |
+| Compliance Officer | `context-engineering-compliance-officer` | `COMPLIANCE_OFFICER_` | PR reviews, status checks, issue labeling |
+| Systems Architect | `context-engineering-systems-architect` | `SYSTEMS_ARCHITECT_` | Repository analysis, workflow planning |
 
 *(Future roles will be added to this table)*
 
