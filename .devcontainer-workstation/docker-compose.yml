@@ -129,7 +129,7 @@ services:
     init: true
     entrypoint: ["/usr/local/bin/init-workstation.sh"]
     command: ["sleep", "infinity"]
-  # GENERATED:END:SERVICES
+# GENERATED:END:SERVICES
 
 volumes:
   # GENERATED:BEGIN:VOLUMES
@@ -145,5 +145,5 @@ volumes:
   systems_architect_gh_config:
   systems_architect_git_config:
   systems_architect_codex_home:
-  # GENERATED:END:VOLUMES
+# GENERATED:END:VOLUMES
   # ssh_data:

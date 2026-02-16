@@ -52,9 +52,11 @@ prompt_if_empty() {
 
 normalize_role() {
   case "$1" in
+    # GENERATED:BEGIN:NORMALIZE_ROLE_CASES
     implementation|implementation-specialist) echo "implementation" ;;
     compliance|compliance-officer) echo "compliance" ;;
-    systems-architect|systems|architect) echo "systems-architect" ;;
+    systems-architect) echo "systems-architect" ;;
+# GENERATED:END:NORMALIZE_ROLE_CASES
     *) return 1 ;;
   esac
 }
@@ -157,14 +159,18 @@ fi
 
 if [ -z "$ROLE" ]; then
   echo "Select role:"
+  # GENERATED:BEGIN:ROLE_MENU
   echo "  1) implementation"
   echo "  2) compliance"
   echo "  3) systems-architect"
+# GENERATED:END:ROLE_MENU
   read -r -p "Choice [2]: " role_choice
   case "${role_choice:-2}" in
+    # GENERATED:BEGIN:ROLE_MENU_CASE
     1) ROLE="implementation" ;;
     2) ROLE="compliance" ;;
     3) ROLE="systems-architect" ;;
+# GENERATED:END:ROLE_MENU_CASE
     *)
       echo "Invalid role choice." >&2
       exit 1
@@ -178,7 +184,7 @@ AUTH_MODE="$(normalize_auth_mode "$AUTH_MODE")" || {
   exit 1
 }
 
-case "$ROLE" in
+# GENERATED:BEGIN:ROLE_MAPPING_CASES
   implementation)
     ROLE_PROFILE="implementation-specialist"
     SERVICE_NAME="implementation-workstation"
@@ -197,7 +203,7 @@ case "$ROLE" in
     PROFILE_NAME="systems-architect"
     ROLE_ENV_PREFIX="SYSTEMS_ARCHITECT"
     ;;
-esac
+# GENERATED:END:ROLE_MAPPING_CASES
 
 if docker compose version >/dev/null 2>&1; then
   COMPOSE_CMD=(docker compose)

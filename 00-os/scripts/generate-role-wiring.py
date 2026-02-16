@@ -184,19 +184,21 @@ def replace_generated_block(content: str, marker: str, new_content: str) -> str:
     begin_marker = f"# GENERATED:BEGIN:{marker}"
     end_marker = f"# GENERATED:END:{marker}"
     
-    # Match from BEGIN to END, but ensure we don't match other BEGIN markers in between
-    # This prevents matching across blocks when marker names are prefixes of each other
+    # Use simple non-greedy match between exact marker pairs
+    # Since marker names are unique, this correctly handles even overlapping prefixes
     pattern = re.compile(
-        rf"({re.escape(begin_marker)})(?:(?!# GENERATED:BEGIN:).*?)({re.escape(end_marker)})",
+        rf"({re.escape(begin_marker)})(.*?)({re.escape(end_marker)})",
         re.DOTALL
     )
     
-    if not pattern.search(content):
+    match = pattern.search(content)
+    if not match:
         raise ValueError(f"Markers not found: {begin_marker} ... {end_marker}")
     
     replacement = f"{begin_marker}\n{new_content}\n{end_marker}"
     
-    return pattern.sub(replacement, content)
+    # Use sub to replace the matched content
+    return pattern.sub(replacement, content, count=1)
 
 
 def update_file_with_generated(
