@@ -160,6 +160,15 @@ When `gh` starts failing later with `401 Bad credentials` (expired installation 
 gh auth status --hostname github.com
 ```
 
+For self-healing CLI usage, prefer the role-safe wrapper:
+
+```bash
+gh-role issue list
+gh-role pr list
+```
+
+`gh-role` runs `gh` with `GH_TOKEN`/`GITHUB_TOKEN` unset and auto-runs `/usr/local/bin/remint-role-github-app-auth.sh` in app mode when auth is stale.
+
 The helper resolves role app metadata from runtime startup output at `/workspace/instructions/role-github-app-auth.env`.
 It defaults the key path to `/run/secrets/role_github_app_private_key` when not explicitly set.
 
