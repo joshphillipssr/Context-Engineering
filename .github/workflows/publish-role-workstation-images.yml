@@ -9,6 +9,12 @@ on:
       - 10-templates/agent-instructions/**
       - 10-templates/compliance-officer-pr-review-brief.md
       - .github/workflows/publish-role-workstation-images.yml
+  workflow_run:
+    workflows: ["Sync Role Repositories"]
+    types:
+      - completed
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -18,6 +24,8 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Skip if triggered by workflow_run and sync failed
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     strategy:
       fail-fast: false
       matrix:
@@ -69,25 +77,50 @@ jobs:
           test -f "role-repo/.vscode/settings.json"
 
       - name: Validate role repository freshness
+        id: freshness_check
         run: |
           set -euo pipefail
           expected_ref="$(git rev-parse --short HEAD)"
           source_ref="$(grep -E "Source ref:" role-repo/AGENTS.md | head -1 | sed -E 's/.*Source ref: `([^`]+)`.*/\1/' || true)"
+          
+          echo "expected_ref=$expected_ref" >> "$GITHUB_OUTPUT"
+          echo "source_ref=$source_ref" >> "$GITHUB_OUTPUT"
+          
           if [ -z "$source_ref" ]; then
-            echo "Role repo AGENTS.md is missing a Source ref marker."
-            echo "Run the sync-role-repos workflow to regenerate role repo artifacts."
+            echo "::error::Role repo AGENTS.md is missing a Source ref marker."
+            echo "::notice::Sync is likely still in progress or incomplete. Waiting for sync workflow to complete."
             exit 1
           fi
           if [ "$source_ref" = "unknown" ]; then
-            echo "Role repo AGENTS.md Source ref is set to 'unknown'."
-            echo "Run the sync-role-repos workflow to regenerate role repo artifacts."
+            echo "::error::Role repo AGENTS.md Source ref is set to 'unknown'."
+            echo "::notice::Sync workflow needs to run for this commit."
             exit 1
           fi
           if [ "$source_ref" != "$expected_ref" ]; then
-            echo "Role repo AGENTS.md Source ref ($source_ref) does not match this commit ($expected_ref)."
-            echo "Sync role repos for this commit and rerun publish after the sync PR merges."
+            echo "::error::Role repo ${{ matrix.role_repo }} Source ref mismatch"
+            echo "Expected: $expected_ref"
+            echo "Found: $source_ref"
+            echo "::notice::Sync workflow for commit $expected_ref may still be running or needs to be triggered."
+            echo "::notice::Check sync-role-repos workflow: https://github.com/${{ github.repository }}/actions/workflows/sync-role-repos.yml"
+            
+            # If triggered by workflow_run, this means sync just completed but role repo isn't updated yet
+            if [ "${{ github.event_name }}" =  "workflow_run" ]; then
+              echo "::warning::Sync workflow completed but role repo not yet updated. This may indicate sync PR not yet merged."
+            fi
+            
             exit 1
           fi
+          
+          echo "✅ Role repository freshness validated: $source_ref"
+      
+      - name: Freshness failure guidance
+        if: failure() && steps.freshness_check.conclusion == 'failure'
+        run: |
+          echo "::notice title=Publish Blocked by Freshness Check::To resolve:"
+          echo "1. Check if sync-role-repos workflow is still running"
+          echo "2. If sync created a PR, merge it and wait for role repo to update"
+          echo "3. Manual trigger: gh workflow run sync-role-repos.yml --ref main"
+          echo "4. After sync completes and role repo is updated, re-run this workflow"
 
       - name: Prepare generated runtime role instructions
         id: role_repo_source
