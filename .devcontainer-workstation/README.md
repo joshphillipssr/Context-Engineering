@@ -22,6 +22,7 @@ The launcher prompts for:
 - Role
 - Auth mode (`app` or `user`)
 - PEM path (required for `app` mode)
+- Optional clone of `Context-Engineering` to `/workspace/Projects/Context-Engineering`
 
 After startup, the launcher checks `codex login status` in-container.
 If unauthenticated, it prompts whether to run `codex login --device-auth`.
@@ -39,7 +40,8 @@ Non-interactive example:
   --source ghcr \
   --role compliance \
   --auth-mode app \
-  --pem-path /Users/<you>/Downloads/a-complianceofficer.private-key.pem
+  --pem-path /Users/<you>/Downloads/a-complianceofficer.private-key.pem \
+  --clone-context-engineering
 ```
 
 ## 1) Build and start from host
