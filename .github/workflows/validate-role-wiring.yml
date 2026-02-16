@@ -8,6 +8,7 @@ on:
       - .github/workflows/sync-role-repos.yml
       - .github/workflows/publish-role-workstation-images.yml
       - .devcontainer-workstation/docker-compose.yml
+      - .devcontainer-workstation/docker-compose.ghcr.yml
       - .devcontainer-workstation/scripts/start-role-workstation.sh
   push:
     branches:
@@ -18,7 +19,11 @@ on:
       - .github/workflows/sync-role-repos.yml
       - .github/workflows/publish-role-workstation-images.yml
       - .devcontainer-workstation/docker-compose.yml
+      - .devcontainer-workstation/docker-compose.ghcr.yml
       - .devcontainer-workstation/scripts/start-role-workstation.sh
+
+    permissions:
+      contents: read
 
 jobs:
   validate:

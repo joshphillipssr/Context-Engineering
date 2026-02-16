@@ -167,6 +167,65 @@ def generate_compose_services(roles: List[Dict]) -> str:
     return "\n\n".join(services)
 
 
+def generate_compose_ghcr_services(roles: List[Dict]) -> str:
+    """Generate docker-compose.ghcr.yml service definitions"""
+    services = []
+    for role in sorted(roles, key=lambda r: r['menu_order']):
+        svc = []
+        svc.append(f"  {role['compose']['service_name']}:")
+        svc.append(
+            "    image: ghcr.io/${GHCR_OWNER:-josh-phillips-llc}/${GHCR_IMAGE_PREFIX:-context-engineering-workstation}"
+            f"-{role['compose']['image_suffix']}:${{GHCR_IMAGE_TAG:-latest}}"
+        )
+        svc.append(f"    container_name: {role['compose']['service_name']}")
+        svc.append("    pull_policy: always")
+
+        if role['compose']['profile']:
+            svc.append("    profiles:")
+            svc.append(f"      - {role['compose']['profile']}")
+
+        prefix = role['compose']['volume_prefix']
+        svc.append("    volumes:")
+        svc.append(f"      - {prefix}_projects_data:/workspace")
+        svc.append(f"      - {prefix}_gh_config:/root/.config/gh")
+        svc.append(f"      - {prefix}_git_config:/root/.config/git")
+        svc.append(f"      - {prefix}_codex_home:/root/.codex")
+        svc.append("    environment:")
+        svc.append("      - GH_BOOTSTRAP_TOKEN=${GH_BOOTSTRAP_TOKEN:-}")
+        svc.append("      - OPENAI_API_KEY=${OPENAI_API_KEY:-}")
+        svc.append("      - WORKSTATION_DEBUG=${WORKSTATION_DEBUG:-false}")
+        svc.append("      - CODEX_HOME=/root/.codex")
+
+        if not role['compose']['profile']:
+            svc.append(f'      - ROLE_PROFILE=${{ROLE_PROFILE:-{role["slug"]}}}')
+        else:
+            svc.append(f'      - ROLE_PROFILE={role["slug"]}')
+
+        env_prefix = role['github_app']['env_prefix']
+        app_id = role['github_app']['app_id_value']
+        inst_id = role['github_app']['installation_id_value']
+
+        svc.append(f'      - ROLE_GITHUB_AUTH_MODE=${{{env_prefix}_ROLE_GITHUB_AUTH_MODE:-app}}')
+        svc.append(f'      - ROLE_GITHUB_APP_ID=${{{env_prefix}_ROLE_GITHUB_APP_ID:-{app_id}}}')
+        svc.append(f'      - ROLE_GITHUB_APP_INSTALLATION_ID=${{{env_prefix}_ROLE_GITHUB_APP_INSTALLATION_ID:-{inst_id}}}')
+        svc.append(f'      - ROLE_GITHUB_APP_PRIVATE_KEY_PATH=${{{env_prefix}_ROLE_GITHUB_APP_PRIVATE_KEY_PATH:-}}')
+        svc.append('      - WORKSPACE_REPO_OWNER=${WORKSPACE_REPO_OWNER:-Josh-Phillips-LLC}')
+        svc.append(f'      - WORKSPACE_REPO_URL=${{{env_prefix}_WORKSPACE_REPO_URL:-https://github.com/Josh-Phillips-LLC/{role["repo_name"]}.git}}')
+        svc.append(f'      - WORKSPACE_REPO_DIR=/workspace/Projects/${{{env_prefix}_WORKSPACE_REPO_DIR_NAME:-{role["repo_name"]}}}')
+        svc.append('      - AUTO_CLONE_WORKSPACE_REPO=${AUTO_CLONE_WORKSPACE_REPO:-true}')
+        svc.append("")
+        svc.append("    cap_add:")
+        svc.append("      - ALL")
+        svc.append("    privileged: true")
+        svc.append("    init: true")
+        svc.append('    entrypoint: ["/usr/local/bin/init-workstation.sh"]')
+        svc.append('    command: ["sleep", "infinity"]')
+
+        services.append("\n".join(svc))
+
+    return "\n\n".join(services)
+
+
 def generate_compose_volumes(roles: List[Dict]) -> str:
     """Generate docker-compose volume declarations"""
     volumes = []
@@ -218,6 +277,7 @@ def update_file_with_generated(
         return False
     else:
         if content != updated:
+            # codeql[py/clear-text-storage-sensitive-data] Generated content contains only non-secret config and secret names.
             file_path.write_text(updated)
             print(f"Updated: {file_path}")
             return True
@@ -280,6 +340,14 @@ def main():
     updates.append(("compose services", changed))
     changed = update_file_with_generated(compose_file, "VOLUMES", volumes, args.check)
     updates.append(("compose volumes", changed))
+
+    # Update docker-compose.ghcr.yml
+    compose_ghcr_file = repo_root / ".devcontainer-workstation" / "docker-compose.ghcr.yml"
+    ghcr_services = generate_compose_ghcr_services(roles)
+    changed = update_file_with_generated(compose_ghcr_file, "SERVICES", ghcr_services, args.check)
+    updates.append(("compose ghcr services", changed))
+    changed = update_file_with_generated(compose_ghcr_file, "VOLUMES", volumes, args.check)
+    updates.append(("compose ghcr volumes", changed))
     
     if args.check:
         failures = [name for name, changed in updates if changed]

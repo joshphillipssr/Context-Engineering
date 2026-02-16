@@ -184,7 +184,8 @@ AUTH_MODE="$(normalize_auth_mode "$AUTH_MODE")" || {
   exit 1
 }
 
-# GENERATED:BEGIN:ROLE_MAPPING_CASES
+case "$ROLE" in
+  # GENERATED:BEGIN:ROLE_MAPPING_CASES
   implementation)
     ROLE_PROFILE="implementation-specialist"
     SERVICE_NAME="implementation-workstation"
@@ -204,6 +205,7 @@ AUTH_MODE="$(normalize_auth_mode "$AUTH_MODE")" || {
     ROLE_ENV_PREFIX="SYSTEMS_ARCHITECT"
     ;;
 # GENERATED:END:ROLE_MAPPING_CASES
+esac
 
 if docker compose version >/dev/null 2>&1; then
   COMPOSE_CMD=(docker compose)

@@ -1,4 +1,5 @@
 services:
+  # GENERATED:BEGIN:SERVICES
   implementation-workstation:
     image: ghcr.io/${GHCR_OWNER:-josh-phillips-llc}/${GHCR_IMAGE_PREFIX:-context-engineering-workstation}-implementation-specialist:${GHCR_IMAGE_TAG:-latest}
     container_name: implementation-workstation
@@ -95,8 +96,10 @@ services:
     init: true
     entrypoint: ["/usr/local/bin/init-workstation.sh"]
     command: ["sleep", "infinity"]
+# GENERATED:END:SERVICES
 
 volumes:
+  # GENERATED:BEGIN:VOLUMES
   implementation_projects_data:
   implementation_gh_config:
   implementation_git_config:
@@ -109,3 +112,4 @@ volumes:
   systems_architect_gh_config:
   systems_architect_git_config:
   systems_architect_codex_home:
+# GENERATED:END:VOLUMES
