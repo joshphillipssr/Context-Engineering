@@ -14,11 +14,15 @@ Options:
   --auth-mode <app|user>
   --pem-path <host_path_to_pem>
   --source <ghcr|local>
+  --clone-context-engineering
+  --no-clone-context-engineering
   --help
 
 Notes:
   - If options are omitted, the script prompts interactively.
   - In app mode, --pem-path is required (or prompted).
+  - You can optionally clone Context-Engineering into:
+    /workspace/Projects/Context-Engineering
   - After startup, if Codex is unauthenticated, the script prompts
     whether to run device auth.
   - The PEM is mounted as a compose secret at:
@@ -73,6 +77,9 @@ ROLE=""
 AUTH_MODE=""
 PEM_PATH=""
 SOURCE=""
+CLONE_CONTEXT_ENGINEERING=""
+CONTEXT_ENGINEERING_REPO_URL="${CONTEXT_ENGINEERING_REPO_URL:-https://github.com/Josh-Phillips-LLC/Context-Engineering.git}"
+CONTEXT_ENGINEERING_REPO_DIR="${CONTEXT_ENGINEERING_REPO_DIR:-/workspace/Projects/Context-Engineering}"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -91,6 +98,14 @@ while [ "$#" -gt 0 ]; do
     --source)
       SOURCE="${2:-}"
       shift 2
+      ;;
+    --clone-context-engineering)
+      CLONE_CONTEXT_ENGINEERING="yes"
+      shift
+      ;;
+    --no-clone-context-engineering)
+      CLONE_CONTEXT_ENGINEERING="no"
+      shift
       ;;
     --help|-h)
       usage
@@ -252,6 +267,54 @@ has_interactive_tty() {
   [ -t 0 ] && [ -t 1 ]
 }
 
+if [ -z "$CLONE_CONTEXT_ENGINEERING" ]; then
+  if has_interactive_tty; then
+    read -r -p "Clone Context-Engineering into ${SERVICE_NAME} at ${CONTEXT_ENGINEERING_REPO_DIR}? [y/N]: " clone_context_choice
+    case "${clone_context_choice:-n}" in
+      y|Y|yes|YES)
+        CLONE_CONTEXT_ENGINEERING="yes"
+        ;;
+      *)
+        CLONE_CONTEXT_ENGINEERING="no"
+        ;;
+    esac
+  else
+    CLONE_CONTEXT_ENGINEERING="no"
+  fi
+fi
+
+clone_context_engineering_repo() {
+  if [ "${CLONE_CONTEXT_ENGINEERING}" != "yes" ]; then
+    return 0
+  fi
+
+  if ! docker exec "$SERVICE_NAME" sh -lc 'command -v git >/dev/null 2>&1'; then
+    echo "Warning: 'git' is not available in ${SERVICE_NAME}; skipping Context-Engineering clone." >&2
+    return 0
+  fi
+
+  if docker exec -e CE_REPO_DIR="$CONTEXT_ENGINEERING_REPO_DIR" "$SERVICE_NAME" sh -lc '[ -d "$CE_REPO_DIR/.git" ]'; then
+    echo "Context-Engineering already present at ${CONTEXT_ENGINEERING_REPO_DIR}; skipping clone."
+    return 0
+  fi
+
+  if ! docker exec -e CE_REPO_DIR="$CONTEXT_ENGINEERING_REPO_DIR" "$SERVICE_NAME" sh -lc '[ ! -d "$CE_REPO_DIR" ] || [ -z "$(ls -A "$CE_REPO_DIR" 2>/dev/null || true)" ]'; then
+    echo "Skipping Context-Engineering clone; ${CONTEXT_ENGINEERING_REPO_DIR} exists and is not empty."
+    return 0
+  fi
+
+  echo "Cloning Context-Engineering into ${CONTEXT_ENGINEERING_REPO_DIR}..."
+  if docker exec \
+    -e CE_REPO_URL="$CONTEXT_ENGINEERING_REPO_URL" \
+    -e CE_REPO_DIR="$CONTEXT_ENGINEERING_REPO_DIR" \
+    "$SERVICE_NAME" \
+    bash -lc 'set -euo pipefail; mkdir -p "$(dirname "$CE_REPO_DIR")"; git clone "$CE_REPO_URL" "$CE_REPO_DIR" >/dev/null 2>&1'; then
+    echo "Cloned Context-Engineering to ${CONTEXT_ENGINEERING_REPO_DIR}."
+  else
+    echo "Warning: failed to clone Context-Engineering from ${CONTEXT_ENGINEERING_REPO_URL}." >&2
+  fi
+}
+
 run_codex_auth_flow() {
   if ! docker exec "$SERVICE_NAME" sh -lc 'command -v codex >/dev/null 2>&1'; then
     echo "Warning: 'codex' CLI is not available in ${SERVICE_NAME}; skipping Codex auth flow." >&2
@@ -303,6 +366,7 @@ env "${ENV_ARGS[@]}" "${COMPOSE_CMD[@]}" "${COMPOSE_ARGS[@]}" "${UP_ARGS[@]}"
 if docker ps --filter "name=^/${SERVICE_NAME}$" --filter "status=running" --format '{{.Names}}' | grep -qx "$SERVICE_NAME"; then
   echo "Container is running: ${SERVICE_NAME}"
   echo "VS Code attach target: ${SERVICE_NAME}"
+  clone_context_engineering_repo
   if ! run_codex_auth_flow; then
     echo "Continuing without verified Codex auth."
   fi
