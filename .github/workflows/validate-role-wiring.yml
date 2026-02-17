@@ -22,8 +22,8 @@ on:
       - .devcontainer-workstation/docker-compose.ghcr.yml
       - .devcontainer-workstation/scripts/start-role-workstation.sh
 
-    permissions:
-      contents: read
+permissions:
+  contents: read
 
 jobs:
   validate:

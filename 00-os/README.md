@@ -38,8 +38,8 @@ The generator updates marked sections in:
    - Role normalization cases
    - Role-to-variables mapping
 
-4. **`.devcontainer-workstation/docker-compose.yml`**
-   - Service definitions for each role
+4. **`.devcontainer-workstation/docker-compose.yml`** and **`.devcontainer-workstation/docker-compose.ghcr.yml`**
+   - Service definitions for each role (local build and GHCR variants)
    - Volume declarations
 
 ## Adding a New Role
