@@ -29,6 +29,7 @@ jobs:
         id: detect
         run: |
           set -euo pipefail
+          shopt -s nullglob
           
           # Find all role charters
           role_slugs=()
