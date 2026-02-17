@@ -62,33 +62,36 @@ echo "=== GitHub App Setup Validation for ${ROLE_SLUG} ==="
 echo "Organization: ${ORG}"
 echo ""
 
-# Determine expected secret names based on role slug
-case "$ROLE_SLUG" in
-  implementation-specialist)
-    APP_ID_SECRET="IMPLEMENTATION_SPECIALIST_APP_ID"
-    PRIVATE_KEY_SECRET="IMPLEMENTATION_SPECIALIST_APP_PRIVATE_KEY"
-    ;;
-  compliance-officer)
-    APP_ID_SECRET="COMPLIANCE_OFFICER_APP_ID"
-    PRIVATE_KEY_SECRET="COMPLIANCE_OFFICER_APP_PRIVATE_KEY"
-    ;;
-  systems-architect)
-    APP_ID_SECRET="SYSTEMS_ARCHITECT_APP_ID"
-    PRIVATE_KEY_SECRET="SYSTEMS_ARCHITECT_APP_PRIVATE_KEY"
-    ;;
-  *)
-    echo "⚠️  Unknown role slug: ${ROLE_SLUG}" >&2
-    echo "    Cannot determine expected naming conventions." >&2
-    echo "    Please add this role to the script or verify manually." >&2
-    exit 1
-    ;;
-esac
+# Determine expected secret names based on role slug naming convention.
+# Convention:
+#   <role-slug> -> <ROLE_SLUG_UPPER_SNAKE>_APP_ID / _APP_PRIVATE_KEY
+role_secret_prefix="$(
+  printf '%s' "$ROLE_SLUG" \
+    | tr '[:lower:]' '[:upper:]' \
+    | sed -E 's/[^A-Z0-9]+/_/g; s/^_+//; s/_+$//; s/_+/_/g'
+)"
+
+if [ -z "$role_secret_prefix" ]; then
+  echo "❌ Could not derive secret naming prefix from role slug: ${ROLE_SLUG}" >&2
+  exit 1
+fi
+
+APP_ID_SECRET="${role_secret_prefix}_APP_ID"
+PRIVATE_KEY_SECRET="${role_secret_prefix}_APP_PRIVATE_KEY"
 
 validation_errors=0
 validation_warnings=0
 context_repo="Context-Engineering"
 role_repo="context-engineering-role-${ROLE_SLUG}"
-role_slug_compact="${ROLE_SLUG//-/}"
+role_slug_compact="$(
+  printf '%s' "$ROLE_SLUG" \
+    | tr '[:upper:]' '[:lower:]' \
+    | tr -cd '[:alnum:]'
+)"
+if [ -z "$role_slug_compact" ]; then
+  echo "❌ Could not derive app slug naming from role slug: ${ROLE_SLUG}" >&2
+  exit 1
+fi
 EXPECTED_APP_SLUG_PRIMARY="a-${role_slug_compact}"
 EXPECTED_APP_SLUG_LEGACY="context-engineering-${ROLE_SLUG}"
 

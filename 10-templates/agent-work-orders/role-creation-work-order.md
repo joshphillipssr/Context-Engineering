@@ -16,16 +16,18 @@ List the **only** files/folders the Implementation Specialist may modify for thi
 
 - The Implementation Specialist may ONLY modify:
   - `00-os/role-charters/<role-slug>.md`
+  - `00-os/role-registry.yml`
   - `10-templates/agent-instructions/roles/<role-slug>.md`
   - `10-templates/job-description-spec/roles/<role-slug>.json`
   - `.devcontainer-workstation/codex/role-profiles/<role-slug>.env`
-  - `.devcontainer-workstation/docker-compose.yml`
-  - `.devcontainer-workstation/docker-compose.ghcr.yml`
-  - `.devcontainer-workstation/scripts/start-role-workstation.sh`
-  - `.devcontainer-workstation/README.md`
-  - `.github/workflows/sync-role-repos.yml`
-  - `.github/workflows/publish-role-workstation-images.yml`
+  - Generated outputs from `00-os/scripts/generate-role-wiring.py`:
+    - `.devcontainer-workstation/docker-compose.yml` (generated sections only)
+    - `.devcontainer-workstation/docker-compose.ghcr.yml` (generated sections only)
+    - `.devcontainer-workstation/scripts/start-role-workstation.sh` (generated sections only)
+    - `.github/workflows/sync-role-repos.yml` (generated sections only)
+    - `.github/workflows/publish-role-workstation-images.yml` (generated sections only)
   - `10-templates/repo-starters/role-repo-template/**` (only if template source changes are explicitly required)
+  - `.devcontainer-workstation/README.md` (only if role lists/examples require update)
   - Any additional files explicitly listed below for this role
 
 State whether new files may be created (default: **Yes**, only those implied by the listed paths and role slug).
@@ -39,7 +41,7 @@ List explicit exclusions so scope does not expand.
 - Protected artifacts unless explicitly included:
   - `governance.md`
   - `context-flow.md`
-  - `00-os/**` files other than the role charter in Scope
+- Manual edits inside generated marker blocks without running the role wiring generator
 - Unrelated refactors or formatting-only edits
 - Runtime behavior changes unrelated to adding the new role
 - Merging PRs
@@ -51,10 +53,13 @@ Fill in all placeholders before execution.
 
 - Role title: `<Role Title>`
 - Role slug (kebab-case): `<role-slug>`
+- Role shorthand/menu label: `<role-menu-label>`
 - Role repo owner: `<github-owner>`
 - Role repo name (default): `context-engineering-role-<role-slug>`
-- Role workstation service name: `<role-slug>-workstation`
-- Role profile env file: `.devcontainer-workstation/codex/role-profiles/<role-slug>.env`
+- Role workstation service name (default): `<role-slug>-workstation`
+- Role env prefix (uppercase snake case): `<ROLE_ENV_PREFIX>`
+- Role app ID secret name: `<ROLE_ENV_PREFIX>_APP_ID`
+- Role app private key secret name: `<ROLE_ENV_PREFIX>_APP_PRIVATE_KEY`
 
 ## Implementation Requirements
 Provide deterministic edits and execution steps.
@@ -82,32 +87,52 @@ Provide deterministic edits and execution steps.
   - `10-templates/repo-starters/role-repo-template/scripts/build-agent-job-description.py`
 - Ensure generated `AGENTS.md` can be assembled without manual edits.
 
-### 4) Wire workstation runtime for role
-- Add role profile env:
-  - `.devcontainer-workstation/codex/role-profiles/<role-slug>.env`
-- Add role service/profile entries in:
-  - `.devcontainer-workstation/docker-compose.yml`
-  - `.devcontainer-workstation/docker-compose.ghcr.yml`
+### 4) Add role profile env
+- File: `.devcontainer-workstation/codex/role-profiles/<role-slug>.env`
+- Set role profile defaults needed by the workstation runtime.
 
-### 5) Update workstation launcher touchpoints
-- Update role selection/mapping in `.devcontainer-workstation/scripts/start-role-workstation.sh`.
-- Update launcher guidance in `.devcontainer-workstation/README.md` if role-specific examples or role lists are included.
+### 5) Register role in canonical role registry
+- File: `00-os/role-registry.yml`
+- Add a new role entry with required fields:
+  - `slug`, `display_name`, `shorthand`
+  - `repo_name`
+  - `github_app.app_id_secret`, `github_app.private_key_secret`, `github_app.env_prefix`
+  - `github_app.app_id_value`, `github_app.installation_id_value` (if known)
+  - `compose.service_name`, `compose.profile`, `compose.image_suffix`, `compose.volume_prefix`
+  - `menu_order`, `menu_label`
 
-### 6) Add role to sync/publish workflow matrices
-- Update role matrix entries in:
-  - `.github/workflows/sync-role-repos.yml`
-  - `.github/workflows/publish-role-workstation-images.yml`
-- Ensure role repo naming is consistent (`context-engineering-role-<role-slug>`).
-
-### 7) Run role onboarding preflight validator
+### 6) Regenerate role wiring (do not hand-edit generated sections)
 Run:
 ```bash
+python3 00-os/scripts/generate-role-wiring.py
+```
+This updates generated markers in:
+- `.devcontainer-workstation/docker-compose.yml`
+- `.devcontainer-workstation/docker-compose.ghcr.yml`
+- `.devcontainer-workstation/scripts/start-role-workstation.sh`
+- `.github/workflows/sync-role-repos.yml`
+- `.github/workflows/publish-role-workstation-images.yml`
+
+### 7) Validate generated wiring and onboarding touchpoints
+Run:
+```bash
+python3 00-os/scripts/generate-role-wiring.py --check
+
 10-templates/repo-starters/role-repo-template/scripts/validate-role-onboarding.sh \
   --role-slug <role-slug>
 ```
-Address any missing touchpoints before continuing.
+Address any validation failures before continuing.
 
-### 8) Create public role repo and initial scaffold
+### 8) Validate GitHub App bootstrap conventions
+Run:
+```bash
+00-os/scripts/validate-github-app-setup.sh \
+  --role-slug <role-slug> \
+  --org <github-owner>
+```
+Fix missing org secrets/app installation warnings before publish validation.
+
+### 9) Create public role repo and initial scaffold
 Run:
 ```bash
 10-templates/repo-starters/role-repo-template/scripts/create-public-role-repo.sh \
@@ -115,7 +140,7 @@ Run:
   --owner <github-owner>
 ```
 
-### 9) Verify sync automation and role-repo PR
+### 10) Verify sync automation and role-repo PR
 Run sync workflow (manual or push-triggered) and verify:
 - Role sync job succeeds
 - Sync PR exists in role repo from `sync/role-repo/<role-slug>` to `main`
@@ -125,16 +150,17 @@ Run sync workflow (manual or push-triggered) and verify:
   - `.vscode/settings.json`
   - `README.md`
 
-### 10) Verify image publish and container usability
+### 11) Verify image publish and container usability
 Run publish workflow and verify role job succeeds.
 Validate published image pull/run for the new role profile and confirm instruction files resolve in runtime.
 
-### 11) Capture evidence in PR
+### 12) Capture evidence in PR
 Include run URLs and verification notes for:
 - Role repo creation
 - Sync workflow
 - Publish workflow
 - Container smoke check
+- Role wiring validation runs
 
 ## Acceptance Criteria
 Use checkboxes. Keep these binary.
@@ -143,12 +169,14 @@ Use checkboxes. Keep these binary.
 - [ ] Role instruction source exists at `10-templates/agent-instructions/roles/<role-slug>.md`
 - [ ] Role job spec exists at `10-templates/job-description-spec/roles/<role-slug>.json`
 - [ ] Role profile env exists at `.devcontainer-workstation/codex/role-profiles/<role-slug>.env`
-- [ ] Role is wired in both compose files
-- [ ] Launcher touchpoints updated in `.devcontainer-workstation/scripts/start-role-workstation.sh` and `.devcontainer-workstation/README.md`
-- [ ] Role is wired in sync and publish workflow matrices
+- [ ] Role registry entry exists in `00-os/role-registry.yml`
+- [ ] Role wiring was generated via `00-os/scripts/generate-role-wiring.py`
+- [ ] `python3 00-os/scripts/generate-role-wiring.py --check` passes
+- [ ] Role onboarding validator passes for `<role-slug>`
 - [ ] Public role repo exists at `<github-owner>/context-engineering-role-<role-slug>`
 - [ ] Sync workflow role job succeeded and produced/updated role-repo PR
 - [ ] Publish workflow role job succeeded for the new role
+- [ ] No manual edits were made inside generated marker blocks
 - [ ] Only files listed in Scope were modified
 - [ ] No secrets, tokens, internal hostnames, IPs, or personal data introduced
 

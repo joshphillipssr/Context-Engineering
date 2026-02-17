@@ -28,8 +28,11 @@ GitHub Apps require manual creation and installation by org admins. This validat
 # Validate a specific role
 ./00-os/scripts/validate-github-app-setup.sh --role-slug implementation-specialist
 
+# Validate a newly added role
+./00-os/scripts/validate-github-app-setup.sh --role-slug hr-and-ai-agent
+
 # Validate for different org
-./00-os/scripts/validate-github-app-setup.sh --role-slug compliance-officer --org MyOrg
+./00-os/scripts/validate-github-app-setup.sh --role-slug systems-architect --org MyOrg
 
 # Help
 ./00-os/scripts/validate-github-app-setup.sh --help
@@ -38,8 +41,8 @@ GitHub Apps require manual creation and installation by org admins. This validat
 ### What It Checks
 
 1. **Organization Secrets**
-   - `{ROLE}_APP_ID` exists
-   - `{ROLE}_APP_PRIVATE_KEY` exists
+   - `{ROLE_SLUG_UPPER_SNAKE}_APP_ID` exists
+   - `{ROLE_SLUG_UPPER_SNAKE}_APP_PRIVATE_KEY` exists
 
 2. **App Installation**
    - App slug follows naming convention
@@ -62,7 +65,7 @@ GitHub Apps require manual creation and installation by org admins. This validat
 ## Naming Conventions
 
 ### App Slug
-Current pattern in this org: `a-{role-slug-without-hyphens}`  
+Current pattern in this org: `a-{role-slug-without-non-alphanumeric-characters}`  
 Legacy/alternate pattern accepted by validator: `context-engineering-{role-slug}`
 
 Examples:
@@ -75,21 +78,19 @@ Examples:
 
 ### Organization Secrets
 
-**App ID Secret**:
-Pattern: `{ROLE_UPPERCASE}_APP_ID`
+The validator derives secret names directly from `--role-slug`:
+
+- Convert slug to uppercase snake case (`[^A-Z0-9]` becomes `_`)
+- Append `_APP_ID` and `_APP_PRIVATE_KEY`
+
+Pattern:
+- App ID: `{ROLE_SLUG_UPPER_SNAKE}_APP_ID`
+- Private key: `{ROLE_SLUG_UPPER_SNAKE}_APP_PRIVATE_KEY`
 
 Examples:
-- `IMPLEMENTATION_SPECIALIST_APP_ID`
-- `COMPLIANCE_OFFICER_APP_ID`
-- `SYSTEMS_ARCHITECT_APP_ID`
-
-**Private Key Secret**:
-Pattern: `{ROLE_UPPERCASE}_APP_PRIVATE_KEY`
-
-Examples:
-- `IMPLEMENTATION_SPECIALIST_APP_PRIVATE_KEY`
-- `COMPLIANCE_OFFICER_APP_PRIVATE_KEY`
-- `SYSTEMS_ARCHITECT_APP_PRIVATE_KEY`
+- `implementation-specialist` -> `IMPLEMENTATION_SPECIALIST_APP_ID`
+- `compliance-officer` -> `COMPLIANCE_OFFICER_APP_PRIVATE_KEY`
+- `hr-and-ai-agent` -> `HR_AND_AI_AGENT_APP_ID`
 
 ### Installation ID Source
 Installation IDs are validated from GitHub's installation API, not org secrets:
@@ -108,7 +109,8 @@ When validation reports missing configuration:
 
 1. Navigate to: `https://github.com/organizations/{ORG}/settings/apps/new`
 2. Configure:
-   - **Name**: `context-engineering-{role-slug}`
+   - **Name (preferred)**: `a-{role-slug-without-non-alphanumeric-characters}`
+   - **Name (legacy accepted by validator)**: `context-engineering-{role-slug}`
    - **Homepage URL**: `https://github.com/{ORG}/Context-Engineering`
    - **Webhook**: Inactive (not needed for role agents)
    - **Permissions**: Per role charter requirements
@@ -129,12 +131,12 @@ When validation reports missing configuration:
 
 ```bash
 # Set App ID
-gh secret set {ROLE_UPPERCASE}_APP_ID \
+gh secret set {ROLE_SLUG_UPPER_SNAKE}_APP_ID \
   --org {ORG} \
   --body "{app_id}"
 
 # Set Private Key  
-gh secret set {ROLE_UPPERCASE}_APP_PRIVATE_KEY \
+gh secret set {ROLE_SLUG_UPPER_SNAKE}_APP_PRIVATE_KEY \
   --org {ORG} \
   < path/to/{role-slug}.private-key.pem
 ```
