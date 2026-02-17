@@ -89,6 +89,22 @@ esac
 
 validation_errors=0
 validation_warnings=0
+context_repo="Context-Engineering"
+role_repo="context-engineering-role-${ROLE_SLUG}"
+
+# Check 0: Verify gh authentication
+echo "🔐 Checking gh authentication..."
+if gh auth status >/dev/null 2>&1; then
+  echo "  ✅ gh CLI authenticated"
+else
+  echo "  ❌ gh CLI is not authenticated"
+  echo ""
+  echo "Authenticate and retry:"
+  echo "  gh auth login"
+  echo "  gh auth status"
+  exit 1
+fi
+echo ""
 
 # Check 1: Verify org secrets exist
 echo "📋 Checking organization secrets..."
@@ -137,10 +153,7 @@ if [ "$app_id_exists" = "true" ] && [ "$private_key_exists" = "true" ]; then
   
   # Check 3: Verify installation visibility on target repos
   echo "🔍 Checking installation visibility..."
-  
-  context_repo="Context-Engineering"
-  role_repo="context-engineering-role-${ROLE_SLUG}"
-  
+
   for repo in "$context_repo" "$role_repo"; do
     repo_exists=$(gh repo view "${ORG}/${repo}" --json name --jq '.name' 2>/dev/null || echo "")
     if [ -z "$repo_exists" ]; then
