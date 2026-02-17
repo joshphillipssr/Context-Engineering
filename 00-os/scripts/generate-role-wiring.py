@@ -277,8 +277,7 @@ def update_file_with_generated(
         return False
     else:
         if content != updated:
-            # lgtm[py/clear-text-storage-sensitive-data]: Generated content contains only non-secret config and secret environment variable names, not values
-            file_path.write_text(updated)
+            file_path.write_text(updated)  # lgtm [py/clear-text-storage-sensitive-data]
             print(f"Updated: {file_path}")
             return True
         else:
