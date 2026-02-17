@@ -306,6 +306,12 @@ The init script also ensures VS Code chat defaults at `/workspace/settings/vscod
 - `"chat.includeApplyingInstructions": true`
 - `"chat.includeReferencedInstructions": true`
 
+### Full in-container access policy
+
+Role workstations intentionally run Codex with full in-container access (`approval_policy = "never"`, `sandbox_mode = "danger-full-access"`).
+This is safe in this architecture because each role runs in an isolated, role-scoped container with role attribution and separated runtime state.
+Expected behavior: commands that use temp paths (for example `/tmp` and `mktemp`) run without approval prompts.
+
 ## 5) Source-of-truth model (multi-agent)
 
 Canonical role-based instruction sources live in:
