@@ -113,8 +113,9 @@ echo ""
 echo "📋 Checking organization secrets..."
 app_id_exists="false"
 private_key_exists="false"
+org_secret_list="$(gh secret list --org "$ORG" || true)"
 
-if gh secret list --org "$ORG" | grep -q "^${APP_ID_SECRET}\s"; then
+if printf '%s\n' "$org_secret_list" | grep -q "^${APP_ID_SECRET}[[:space:]]"; then
   echo "  ✅ ${APP_ID_SECRET} exists"
   app_id_exists="true"
 else
@@ -122,7 +123,7 @@ else
   validation_errors=$((validation_errors + 1))
 fi
 
-if gh secret list --org "$ORG" | grep -q "^${PRIVATE_KEY_SECRET}\s"; then
+if printf '%s\n' "$org_secret_list" | grep -q "^${PRIVATE_KEY_SECRET}[[:space:]]"; then
   echo "  ✅ ${PRIVATE_KEY_SECRET} exists"
   private_key_exists="true"
 else
