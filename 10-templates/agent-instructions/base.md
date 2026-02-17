@@ -26,3 +26,26 @@ If an instruction conflicts with authoritative policy, escalate rather than gues
 - Ambiguous authority boundaries
 - Scope expansion beyond the issue definition
 - Any uncertainty around safety or publication boundaries
+
+## GitHub Auth Self-Heal (Role Workstations)
+
+If you are running inside a role workstation container:
+
+- Treat role-app auth as authoritative when `ROLE_GITHUB_AUTH_MODE=app`.
+- Do not run `gh auth login` in app mode.
+- Always run GitHub CLI with `GH_TOKEN` and `GITHUB_TOKEN` unset so persisted role auth is used.
+- If `gh` auth fails, re-mint role app auth before retrying:
+  - `/usr/local/bin/remint-role-github-app-auth.sh`
+- Prefer wrapper usage when available:
+  - `gh-role <gh-args>`
+
+Verification commands:
+
+- `env -u GH_TOKEN -u GITHUB_TOKEN gh auth status --hostname github.com`
+- `env -u GH_TOKEN -u GITHUB_TOKEN gh api /user --jq '.login'`
+
+Only escalate after re-mint fails. Include:
+
+- `gh auth status --hostname github.com`
+- `ls -l /run/secrets/role_github_app_private_key`
+- `cat /workspace/instructions/role-github-app-auth.env`

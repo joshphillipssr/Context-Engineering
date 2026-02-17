@@ -101,7 +101,8 @@ RUN set -eux; \
 COPY .devcontainer-workstation/scripts/init-workstation.sh /usr/local/bin/init-workstation.sh
 COPY .devcontainer-workstation/scripts/setup-role-github-app-auth.sh /usr/local/bin/setup-role-github-app-auth.sh
 COPY .devcontainer-workstation/scripts/remint-role-github-app-auth.sh /usr/local/bin/remint-role-github-app-auth.sh
-RUN chmod +x /usr/local/bin/init-workstation.sh /usr/local/bin/setup-role-github-app-auth.sh /usr/local/bin/remint-role-github-app-auth.sh
+COPY .devcontainer-workstation/scripts/gh-role.sh /usr/local/bin/gh-role
+RUN chmod +x /usr/local/bin/init-workstation.sh /usr/local/bin/setup-role-github-app-auth.sh /usr/local/bin/remint-role-github-app-auth.sh /usr/local/bin/gh-role
 ENV IMAGE_ROLE_PROFILE=${IMAGE_ROLE_PROFILE}
 
 WORKDIR /workspace

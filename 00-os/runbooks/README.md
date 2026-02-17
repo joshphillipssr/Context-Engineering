@@ -21,11 +21,28 @@ Runbooks provide step-by-step procedures for:
 **Key processes:**
 - Validate GitHub App creation and naming
 - Verify organization secrets configuration
+- Validate required app-id/private-key secret conventions and installation ID detection
 - Check app installation on required repositories
 - Manual setup checklist for new roles
 - Troubleshooting auth failures
 
 **Related script:** `00-os/scripts/validate-github-app-setup.sh`
+
+### [GitHub App Permission Escalation](./github-app-permission-escalation.md)
+
+**When to use:** Role agent operations fail due to missing GitHub App permissions
+
+**Scope:** All role-specific GitHub Apps (Implementation Specialist, Compliance Officer, Systems Architect, and future roles)
+
+**Key processes:**
+- Detection and triage of permission failures
+- Evidence capture and analysis
+- Escalation and approval workflow
+- Manual permission update procedures
+- Post-update validation
+- Rollback procedures
+
+**Related template:** `10-templates/permission-escalation-request.md`
 
 ---
 

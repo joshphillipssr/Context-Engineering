@@ -1,0 +1,47 @@
+name: Validate Role Wiring Generation
+
+on:
+  pull_request:
+    paths:
+      - 00-os/role-registry.yml
+      - 00-os/scripts/generate-role-wiring.py
+      - .github/workflows/sync-role-repos.yml
+      - .github/workflows/publish-role-workstation-images.yml
+      - .devcontainer-workstation/docker-compose.yml
+      - .devcontainer-workstation/docker-compose.ghcr.yml
+      - .devcontainer-workstation/scripts/start-role-workstation.sh
+  push:
+    branches:
+      - main
+    paths:
+      - 00-os/role-registry.yml
+      - 00-os/scripts/generate-role-wiring.py
+      - .github/workflows/sync-role-repos.yml
+      - .github/workflows/publish-role-workstation-images.yml
+      - .devcontainer-workstation/docker-compose.yml
+      - .devcontainer-workstation/docker-compose.ghcr.yml
+      - .devcontainer-workstation/scripts/start-role-workstation.sh
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Generated Role Wiring
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml
+
+      - name: Validate generated files
+        run: |
+          python3 00-os/scripts/generate-role-wiring.py --check

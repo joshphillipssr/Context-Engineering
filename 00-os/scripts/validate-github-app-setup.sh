@@ -67,17 +67,14 @@ case "$ROLE_SLUG" in
   implementation-specialist)
     APP_ID_SECRET="IMPLEMENTATION_SPECIALIST_APP_ID"
     PRIVATE_KEY_SECRET="IMPLEMENTATION_SPECIALIST_APP_PRIVATE_KEY"
-    EXPECTED_APP_SLUG="context-engineering-implementation-specialist"
     ;;
   compliance-officer)
     APP_ID_SECRET="COMPLIANCE_OFFICER_APP_ID"
     PRIVATE_KEY_SECRET="COMPLIANCE_OFFICER_APP_PRIVATE_KEY"
-    EXPECTED_APP_SLUG="context-engineering-compliance-officer"
     ;;
   systems-architect)
     APP_ID_SECRET="SYSTEMS_ARCHITECT_APP_ID"
     PRIVATE_KEY_SECRET="SYSTEMS_ARCHITECT_APP_PRIVATE_KEY"
-    EXPECTED_APP_SLUG="context-engineering-systems-architect"
     ;;
   *)
     echo "⚠️  Unknown role slug: ${ROLE_SLUG}" >&2
@@ -91,6 +88,9 @@ validation_errors=0
 validation_warnings=0
 context_repo="Context-Engineering"
 role_repo="context-engineering-role-${ROLE_SLUG}"
+role_slug_compact="${ROLE_SLUG//-/}"
+EXPECTED_APP_SLUG_PRIMARY="a-${role_slug_compact}"
+EXPECTED_APP_SLUG_LEGACY="context-engineering-${ROLE_SLUG}"
 
 # Check 0: Verify gh authentication
 echo "🔐 Checking gh authentication..."
@@ -134,15 +134,32 @@ if [ "$app_id_exists" = "true" ] && [ "$private_key_exists" = "true" ]; then
   echo "📦 Checking GitHub App installation..."
   
   # Try to query installations using gh API
-  installations=$(gh api "/orgs/${ORG}/installations" --jq '.installations[] | select(.app_slug | contains("context-engineering")) | .app_slug' 2>/dev/null || true)
-  
-  if echo "$installations" | grep -q "$EXPECTED_APP_SLUG"; then
-    echo "  ✅ App installed: ${EXPECTED_APP_SLUG}"
+  installations=$(
+    gh api "/orgs/${ORG}/installations" --jq '.installations[] | [.app_slug, (.id|tostring)] | @tsv' 2>/dev/null || true
+  )
+
+  matched_slug=""
+  matched_installation_id=""
+  for expected in "$EXPECTED_APP_SLUG_PRIMARY" "$EXPECTED_APP_SLUG_LEGACY"; do
+    matched_row="$(printf '%s\n' "$installations" | awk -F'\t' -v expected="$expected" '$1==expected {print $0; exit}')"
+    if [ -n "$matched_row" ]; then
+      matched_slug="$(printf '%s' "$matched_row" | awk -F'\t' '{print $1}')"
+      matched_installation_id="$(printf '%s' "$matched_row" | awk -F'\t' '{print $2}')"
+      break
+    fi
+  done
+
+  if [ -n "$matched_slug" ]; then
+    echo "  ✅ App installed: ${matched_slug}"
+    echo "  ✅ Installation ID detected: ${matched_installation_id}"
   else
-    echo "  ⚠️  Cannot confirm ${EXPECTED_APP_SLUG} is installed"
-    echo "     Found context-engineering apps:"
+    echo "  ⚠️  Cannot confirm app installation for role '${ROLE_SLUG}'"
+    echo "     Expected one of:"
+    echo "     - ${EXPECTED_APP_SLUG_PRIMARY}"
+    echo "     - ${EXPECTED_APP_SLUG_LEGACY}"
+    echo "     Found installed apps:"
     if [ -n "$installations" ]; then
-      echo "$installations" | sed 's/^/     - /'
+      printf '%s\n' "$installations" | awk -F'\t' '{print "     - " $1 " (installation_id=" $2 ")"}'
     else
       echo "     (none found)"
     fi
@@ -175,10 +192,12 @@ fi
 
 # Check 4: Validate naming conventions
 echo "📝 Validating naming conventions..."
-echo "   Expected App Slug: ${EXPECTED_APP_SLUG}"
+echo "   Expected App Slug (current): ${EXPECTED_APP_SLUG_PRIMARY}"
+echo "   Expected App Slug (legacy): ${EXPECTED_APP_SLUG_LEGACY}"
 echo "   Expected Secrets:"
 echo "     - ${APP_ID_SECRET}"
 echo "     - ${PRIVATE_KEY_SECRET}"
+echo "   Installation ID source: GitHub App installations API (/orgs/${ORG}/installations)"
 echo ""
 
 # Summary
@@ -195,9 +214,9 @@ elif [ "$validation_errors" -eq 0 ]; then
   echo ""
   echo "Manual verification steps:"
   echo "1. Visit: https://github.com/organizations/${ORG}/settings/apps"
-  echo "2. Verify ${EXPECTED_APP_SLUG} exists and is configured"
+  echo "2. Verify ${EXPECTED_APP_SLUG_PRIMARY} (or ${EXPECTED_APP_SLUG_LEGACY}) exists and is configured"
   echo "3. Visit: https://github.com/organizations/${ORG}/settings/installations"
-  echo "4. Verify ${EXPECTED_APP_SLUG} is installed on Context-Engineering and role repo"
+  echo "4. Verify the role app is installed on Context-Engineering and role repo"
   exit 0
 else
   echo "❌ ${validation_errors} error(s), ${validation_warnings} warning(s)"
@@ -206,7 +225,7 @@ else
   echo ""
   echo "1. Create GitHub App:"
   echo "   - Visit: https://github.com/organizations/${ORG}/settings/apps/new"
-  echo "   - Name: ${EXPECTED_APP_SLUG}"
+  echo "   - Name: ${EXPECTED_APP_SLUG_PRIMARY}"
   echo "   - Configure required permissions (see role charter)"
   echo ""
   echo "2. Install GitHub App:"

@@ -1,0 +1,72 @@
+name: Validate Role Onboarding
+
+on:
+  pull_request:
+    paths:
+      - '00-os/role-charters/**'
+      - '10-templates/agent-instructions/roles/**'
+      - '10-templates/job-description-spec/roles/**'
+      - '.devcontainer-workstation/**'
+      - '.github/workflows/sync-role-repos.yml'
+      - '.github/workflows/publish-role-workstation-images.yml'
+      - '10-templates/repo-starters/role-repo-template/scripts/validate-role-onboarding.sh'
+      - '.github/workflows/validate-role-onboarding.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  detect-roles:
+    runs-on: ubuntu-latest
+    outputs:
+      roles: ${{ steps.detect.outputs.roles }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Detect role slugs
+        id: detect
+        run: |
+          set -euo pipefail
+          
+          # Find onboarded role slugs from the sync workflow matrix
+          role_slugs=()
+          while IFS= read -r slug; do
+            if [ -n "$slug" ]; then
+              role_slugs+=("\"$slug\"")
+            fi
+          done < <(
+            awk -F 'role_slug: ' '/role_slug:/ {gsub(/[[:space:]]+$/, "", $2); print $2}' \
+              .github/workflows/sync-role-repos.yml
+          )
+
+          # Format as JSON array for matrix
+          roles_json="[$(IFS=,; echo "${role_slugs[*]}")]"
+          echo "roles=$roles_json" >> "$GITHUB_OUTPUT"
+          echo "Detected roles: $roles_json"
+
+  validate:
+    runs-on: ubuntu-latest
+    needs: detect-roles
+    if: needs.detect-roles.outputs.roles != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        role: ${{ fromJson(needs.detect-roles.outputs.roles) }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate role onboarding for ${{ matrix.role }}
+        run: |
+          set -euo pipefail
+          chmod +x 10-templates/repo-starters/role-repo-template/scripts/validate-role-onboarding.sh
+          ./10-templates/repo-starters/role-repo-template/scripts/validate-role-onboarding.sh \
+            --role-slug "${{ matrix.role }}"
+
+      - name: Validation summary
+        if: success()
+        run: |
+          echo "✅ Role onboarding complete for: ${{ matrix.role }}"

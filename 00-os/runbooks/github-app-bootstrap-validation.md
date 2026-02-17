@@ -44,7 +44,7 @@ GitHub Apps require manual creation and installation by org admins. This validat
 2. **App Installation**
    - App slug follows naming convention
    - App is installed in organization
-   - Installations list is accessible
+   - Installation ID is detected from org installation data
 
 3. **Repository Access**
    - Context-Engineering repo exists
@@ -62,9 +62,13 @@ GitHub Apps require manual creation and installation by org admins. This validat
 ## Naming Conventions
 
 ### App Slug
-Pattern: `context-engineering-{role-slug}`
+Current pattern in this org: `a-{role-slug-without-hyphens}`  
+Legacy/alternate pattern accepted by validator: `context-engineering-{role-slug}`
 
 Examples:
+- `a-implementationspecialist`
+- `a-complianceofficer`
+- `a-systemsarchitect`
 - `context-engineering-implementation-specialist`
 - `context-engineering-compliance-officer`
 - `context-engineering-systems-architect`
@@ -86,6 +90,15 @@ Examples:
 - `IMPLEMENTATION_SPECIALIST_APP_PRIVATE_KEY`
 - `COMPLIANCE_OFFICER_APP_PRIVATE_KEY`
 - `SYSTEMS_ARCHITECT_APP_PRIVATE_KEY`
+
+### Installation ID Source
+Installation IDs are validated from GitHub's installation API, not org secrets:
+
+```bash
+gh api /orgs/{ORG}/installations
+```
+
+The validator confirms the role app exists in this list and reports the detected installation ID.
 
 ## Manual Setup Checklist
 
