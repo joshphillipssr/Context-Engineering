@@ -1,4 +1,5 @@
 services:
+  # GENERATED:BEGIN:SERVICES
   implementation-workstation:
     build:
       context: ..
@@ -128,8 +129,10 @@ services:
     init: true
     entrypoint: ["/usr/local/bin/init-workstation.sh"]
     command: ["sleep", "infinity"]
+# GENERATED:END:SERVICES
 
 volumes:
+  # GENERATED:BEGIN:VOLUMES
   implementation_projects_data:
   implementation_gh_config:
   implementation_git_config:
@@ -142,4 +145,5 @@ volumes:
   systems_architect_gh_config:
   systems_architect_git_config:
   systems_architect_codex_home:
+# GENERATED:END:VOLUMES
   # ssh_data:

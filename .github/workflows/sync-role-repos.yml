@@ -23,10 +23,12 @@ on:
         type: choice
         default: all
         options:
+          # GENERATED:BEGIN:ROLE_CHOICES
           - all
           - implementation-specialist
           - compliance-officer
           - systems-architect
+# GENERATED:END:ROLE_CHOICES
       owner:
         description: Optional GitHub owner override
         required: false
@@ -61,6 +63,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # GENERATED:BEGIN:ROLE_MATRIX
           - role_slug: implementation-specialist
             repo_name: context-engineering-role-implementation-specialist
             app_id_secret: IMPLEMENTATION_SPECIALIST_APP_ID
@@ -73,6 +76,7 @@ jobs:
             repo_name: context-engineering-role-systems-architect
             app_id_secret: SYSTEMS_ARCHITECT_APP_ID
             private_key_secret: SYSTEMS_ARCHITECT_APP_PRIVATE_KEY
+# GENERATED:END:ROLE_MATRIX
 
     steps:
       - name: Evaluate matrix role selection

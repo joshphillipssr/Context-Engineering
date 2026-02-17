@@ -22,6 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # GENERATED:BEGIN:ROLE_MATRIX
           - role_profile: implementation-specialist
             image_suffix: implementation-specialist
             role_repo: context-engineering-role-implementation-specialist
@@ -31,6 +32,7 @@ jobs:
           - role_profile: systems-architect
             image_suffix: systems-architect
             role_repo: context-engineering-role-systems-architect
+# GENERATED:END:ROLE_MATRIX
 
     steps:
       - name: Checkout repository
