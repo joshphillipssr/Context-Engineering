@@ -28,6 +28,7 @@ on:
           - implementation-specialist
           - compliance-officer
           - systems-architect
+          - hr-ai-agent-specialist
 # GENERATED:END:ROLE_CHOICES
       owner:
         description: Optional GitHub owner override
@@ -76,6 +77,10 @@ jobs:
             repo_name: context-engineering-role-systems-architect
             app_id_secret: SYSTEMS_ARCHITECT_APP_ID
             private_key_secret: SYSTEMS_ARCHITECT_APP_PRIVATE_KEY
+          - role_slug: hr-ai-agent-specialist
+            repo_name: context-engineering-role-hr-ai-agent-specialist
+            app_id_secret: HR_AI_AGENT_SPECIALIST_APP_ID
+            private_key_secret: HR_AI_AGENT_SPECIALIST_APP_PRIVATE_KEY
 # GENERATED:END:ROLE_MATRIX
 
     steps:

@@ -13,7 +13,7 @@
 
 metadata:
   version: "1.0"
-  last_updated: "2026-02-16"
+  last_updated: "2026-02-17"
   canonical_source: "00-os/role-registry.yml"
   generator_script: "00-os/scripts/generate-role-wiring.py"
 
@@ -86,6 +86,28 @@ roles:
     
     menu_order: 3
     menu_label: "systems-architect"
+
+  - slug: hr-ai-agent-specialist
+    display_name: HR and AI Agent Specialist
+    shorthand: hraias
+    repo_name: context-engineering-role-hr-ai-agent-specialist
+
+    github_app:
+      app_id_secret: HR_AI_AGENT_SPECIALIST_APP_ID
+      app_id_value: 2885628
+      private_key_secret: HR_AI_AGENT_SPECIALIST_APP_PRIVATE_KEY
+      installation_id_secret: HR_AI_AGENT_SPECIALIST_APP_INSTALLATION_ID
+      installation_id_value: 110711332
+      env_prefix: HR_AI_AGENT_SPECIALIST
+
+    compose:
+      service_name: hr-ai-agent-specialist-workstation
+      profile: hr-ai-agent-specialist
+      image_suffix: hr-ai-agent-specialist
+      volume_prefix: hr_ai_agent_specialist
+
+    menu_order: 4
+    menu_label: "hraias"
 
 # Configuration templates for role wiring
 templates:
