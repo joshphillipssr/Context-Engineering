@@ -12,6 +12,22 @@ Runbooks provide step-by-step procedures for:
 
 ## Available Runbooks
 
+### [GitHub App Bootstrap Validation](./github-app-bootstrap-validation.md)
+
+**When to use:** New role onboarding or debugging role agent authentication failures
+
+**Scope:** All role-specific GitHub Apps during setup and ongoing operations
+
+**Key processes:**
+- Validate GitHub App creation and naming
+- Verify organization secrets configuration
+- Validate required app-id/private-key secret conventions and installation ID detection
+- Check app installation on required repositories
+- Manual setup checklist for new roles
+- Troubleshooting auth failures
+
+**Related script:** `00-os/scripts/validate-github-app-setup.sh`
+
 ### [GitHub App Permission Escalation](./github-app-permission-escalation.md)
 
 **When to use:** Role agent operations fail due to missing GitHub App permissions
