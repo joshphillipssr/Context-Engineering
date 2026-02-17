@@ -17,6 +17,10 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: publish-role-workstation-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
   packages: write
@@ -119,8 +123,8 @@ jobs:
           echo "::notice title=Publish Blocked by Freshness Check::To resolve:"
           echo "1. Check if sync-role-repos workflow is still running"
           echo "2. If sync created a PR, merge it and wait for role repo to update"
-          echo "3. Manual trigger: gh workflow run sync-role-repos.yml --ref main"
-          echo "4. After sync completes and role repo is updated, re-run this workflow"
+          echo "3. After sync completes and role repo is updated, re-run this workflow"
+          echo "4. View sync workflow runs: https://github.com/${{ github.repository }}/actions/workflows/sync-role-repos.yml"
 
       - name: Prepare generated runtime role instructions
         id: role_repo_source
