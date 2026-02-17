@@ -277,7 +277,7 @@ def update_file_with_generated(
         return False
     else:
         if content != updated:
-            file_path.write_text(updated)  # lgtm [py/clear-text-storage-sensitive-data]
+            file_path.write_text(updated)
             print(f"Updated: {file_path}")
             return True
         else:
