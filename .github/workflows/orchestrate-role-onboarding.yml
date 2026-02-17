@@ -1,0 +1,295 @@
+name: Orchestrate Role Onboarding
+
+on:
+  workflow_dispatch:
+    inputs:
+      role_slug:
+        description: 'Role slug (e.g., implementation-specialist)'
+        required: true
+        type: string
+      role_title:
+        description: 'Role display title'
+        required: false
+        type: string
+      owner:
+        description: 'GitHub owner (defaults to org owner)'
+        required: false
+        type: string
+      skip_validation:
+        description: 'Skip preflight validation checks'
+        required: false
+        type: boolean
+        default: false
+      dry_run:
+        description: 'Dry run mode (skip publish)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  preflight:
+    name: Preflight Validation
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_validation }}
+    outputs:
+      validation_passed: ${{ steps.validate.outputs.passed }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate role onboarding completeness
+        id: validate
+        run: |
+          set -euo pipefail
+          echo "::group::Validating role onboarding for ${{ inputs.role_slug }}"
+          chmod +x 10-templates/repo-starters/role-repo-template/scripts/validate-role-onboarding.sh
+          
+          if ./10-templates/repo-starters/role-repo-template/scripts/validate-role-onboarding.sh \
+            --role-slug "${{ inputs.role_slug }}"; then
+            echo "passed=true" >> "$GITHUB_OUTPUT"
+            echo "✅ Role onboarding validation passed"
+          else
+            echo "passed=false" >> "$GITHUB_OUTPUT"
+            echo "::error::Role onboarding validation failed - missing required touchpoints"
+            exit 1
+          fi
+          echo "::endgroup::"
+
+      - name: Validate GitHub App setup
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          echo "::group::Validating GitHub App setup for ${{ inputs.role_slug }}"
+          
+          owner="${{ inputs.owner }}"
+          if [ -z "$owner" ]; then
+            owner="${{ github.repository_owner }}"
+          fi
+          
+          if ./00-os/scripts/validate-github-app-setup.sh \
+            --role-slug "${{ inputs.role_slug }}" \
+            --org "$owner"; then
+            echo "::notice::GitHub App setup validated successfully"
+          else
+            echo "::warning::GitHub App setup validation had issues - review output above"
+            echo "::notice::This is non-blocking - sync may still succeed"
+          fi
+          echo "::endgroup::"
+
+  sync:
+    name: Sync Role Repository
+    runs-on: ubuntu-latest
+    needs: [preflight]
+    if: ${{ always() && (needs.preflight.result == 'success' || inputs.skip_validation) }}
+    outputs:
+      sync_status: ${{ steps.sync.outcome }}
+      source_ref: ${{ steps.source_ref.outputs.ref }}
+      sync_run_id: ${{ steps.sync.outputs.run_id }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Capture source ref
+        id: source_ref
+        run: |
+          ref="$(git rev-parse --short HEAD)"
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "Source ref: $ref"
+
+      - name: Trigger sync workflow
+        id: sync
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::group::Triggering sync workflow for ${{ inputs.role_slug }}"
+          dispatch_time="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          
+          owner_arg=""
+          if [ -n "${{ inputs.owner }}" ]; then
+            owner_arg="--field owner=${{ inputs.owner }}"
+          fi
+          
+          gh workflow run sync-role-repos.yml \
+            --ref main \
+            --field role="${{ inputs.role_slug }}" \
+            --field source_ref="${{ steps.source_ref.outputs.ref }}" \
+            $owner_arg \
+            --field auto_merge=true
+          run_id=""
+
+          for attempt in {1..10}; do
+            run_id="$(gh run list \
+              --workflow=sync-role-repos.yml \
+              --branch=main \
+              --event=workflow_dispatch \
+              --limit=20 \
+              --json databaseId,createdAt \
+              --jq 'map(select(.createdAt >= "'"$dispatch_time"'")) | sort_by(.createdAt) | .[0].databaseId // empty')"
+
+            if [ -n "$run_id" ]; then
+              break
+            fi
+
+            sleep 3
+          done
+
+          if [ -z "$run_id" ]; then
+            echo "::error::Unable to identify triggered sync workflow run ID"
+            exit 1
+          fi
+
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          
+          echo "✅ Sync workflow triggered"
+          echo "::endgroup::"
+          
+          echo "::notice::Sync workflow started - run ID: $run_id"
+          echo "::notice::Sync workflow run: https://github.com/${{ github.repository }}/actions/runs/$run_id"
+
+  wait-for-sync:
+    name: Wait for Sync Completion
+    runs-on: ubuntu-latest
+    needs: [sync]
+    if: ${{ needs.sync.result == 'success' }}
+    outputs:
+      sync_completed: ${{ steps.poll.outputs.completed }}
+    steps:
+      - name: Poll for sync completion
+        id: poll
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::group::Waiting for sync workflow to complete"
+
+          sync_run_id="${{ needs.sync.outputs.sync_run_id }}"
+          if [ -z "$sync_run_id" ]; then
+            echo "::error::Missing sync run ID from sync job output"
+            exit 1
+          fi
+
+          echo "Tracking sync run ID: $sync_run_id"
+          
+          max_wait=600  # 10 minutes
+          interval=30
+          elapsed=0
+          
+          echo "Polling for sync workflow completion (max wait: ${max_wait}s)..."
+          
+          while [ $elapsed -lt $max_wait ]; do
+            run_status="$(gh run view "$sync_run_id" \
+              --json status \
+              --jq '.status' \
+              || echo "unknown")"
+            
+            if [ "$run_status" = "completed" ]; then
+              conclusion="$(gh run view "$sync_run_id" \
+                --json conclusion \
+                --jq '.conclusion')"
+              
+              if [ "$conclusion" = "success" ]; then
+                echo "completed=true" >> "$GITHUB_OUTPUT"
+                echo "✅ Sync workflow completed successfully"
+                echo "::endgroup::"
+                exit 0
+              else
+                echo "completed=false" >> "$GITHUB_OUTPUT"
+                echo "::error::Sync workflow failed with conclusion: $conclusion"
+                echo "::endgroup::"
+                exit 1
+              fi
+            fi
+            
+            echo "Sync status: $run_status (waited ${elapsed}s)"
+            sleep $interval
+            elapsed=$((elapsed + interval))
+          done
+          
+          echo "completed=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::Sync workflow did not complete within ${max_wait}s"
+          echo "::notice::Sync may still be running - check workflow manually"
+          echo "::endgroup::"
+          exit 1
+
+  publish:
+    name: Publish Role Workstation Images
+    runs-on: ubuntu-latest
+    needs: [sync, wait-for-sync]
+    if: ${{ !inputs.dry_run && needs.wait-for-sync.outputs.sync_completed == 'true' }}
+    steps:
+      - name: Trigger publish workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::group::Triggering publish workflow"
+          
+          gh workflow run publish-role-workstation-images.yml --ref main
+          
+          echo "✅ Publish workflow triggered"
+          echo "::endgroup::"
+          
+          echo "::notice::Publish workflow started - monitor at: https://github.com/${{ github.repository }}/actions/workflows/publish-role-workstation-images.yml"
+
+  summary:
+    name: Onboarding Summary
+    runs-on: ubuntu-latest
+    needs: [preflight, sync, wait-for-sync, publish]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# Role Onboarding Orchestration Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Role**: \`${{ inputs.role_slug }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Source Ref**: \`${{ needs.sync.outputs.source_ref || 'unknown' }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Dry Run**: ${{ inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "## Phase Results" >> $GITHUB_STEP_SUMMARY
+          echo ""  >> $GITHUB_STEP_SUMMARY
+          
+          # Preflight
+          if [ "${{ needs.preflight.result }}" = "success" ]; then
+            echo "- ✅ Preflight validation: Passed" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.preflight.result }}" = "skipped" ]; then
+            echo "- ⏭️  Preflight validation: Skipped" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Preflight validation: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Sync
+          if [ "${{ needs.sync.result }}" = "success" ]; then
+            echo "- ✅ Sync trigger: Success" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Sync trigger: ${{ needs.sync.result }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Wait for sync
+          if [ "${{ needs.wait-for-sync.result }}" = "success" ]; then
+            echo "- ✅ Sync completion: Completed successfully" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.wait-for-sync.result }}" = "skipped" ]; then
+            echo "- ⏭️  Sync completion: Skipped" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️  Sync completion: ${{ needs.wait-for-sync.result }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Publish
+          if [ "${{ needs.publish.result }}" = "success" ]; then
+            echo "- ✅ Publish trigger: Success" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.publish.result }}" = "skipped" ]; then
+            echo "- ⏭️  Publish trigger: Skipped (dry run: ${{ inputs.dry_run }})" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Publish trigger: ${{ needs.publish.result }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Related Workflows" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [Sync Role Repositories](https://github.com/${{ github.repository }}/actions/workflows/sync-role-repos.yml)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Publish Role Workstation Images](https://github.com/${{ github.repository }}/actions/workflows/publish-role-workstation-images.yml)" >> $GITHUB_STEP_SUMMARY
