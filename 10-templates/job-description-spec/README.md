@@ -12,6 +12,7 @@ Structured source inputs for deterministic assembly of role-repo `AGENTS.md` fil
 
 - `global.json`
   - Global requirements applied to every role (workflow, authority boundaries, escalation, prohibited actions, quality standards)
+  - May also include `required_protocol_includes` for protocol content that must appear in all generated role contracts
 - `roles/<role-slug>.json`
   - Role-specific requirements and protocol includes
 
@@ -48,6 +49,10 @@ All keys must be JSON arrays of strings.
 2. `roles/<role-slug>.json`
 
 and renders a contract-shaped markdown job description with required sections.
+
+Current global protocol include:
+
+- `10-templates/github-app-auth-self-heal-protocol.md`
 
 ## Notes
 

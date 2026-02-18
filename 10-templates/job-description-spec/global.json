@@ -25,5 +25,8 @@
     "Outputs must be deterministic, auditable, and tied to explicit requirements.",
     "Changes must be review-ready with clear rationale and minimal drift.",
     "Use canonical role terminology consistently across artifacts."
+  ],
+  "required_protocol_includes": [
+    "10-templates/github-app-auth-self-heal-protocol.md"
   ]
 }

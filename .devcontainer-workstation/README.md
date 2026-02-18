@@ -160,6 +160,8 @@ gh auth status --hostname github.com
 gh api graphql -f query='{viewer{login}}' --jq '.data.viewer.login'
 ```
 
+Note: `gh api /user` is not a valid role-identity check for GitHub App auth and can return `403 Resource not accessible by integration`.
+
 If App auth variables are missing, startup logs a warning and continues without App auth.
 
 When `gh` starts failing later with `401 Bad credentials` (expired installation token), run the deterministic re-mint helper before issue/branch/PR flows:
