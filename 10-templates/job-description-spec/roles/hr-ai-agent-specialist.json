@@ -14,7 +14,11 @@
     "Execute or coordinate governed role-onboarding steps from charter/spec/wiring through role-repo and workstation readiness.",
     "Enforce registry-first role wiring updates via role registry and generated outputs.",
     "Validate role onboarding with deterministic checks before review handoff.",
-    "Monitor role-repo sync outcomes and ensure instruction-contract updates propagate correctly."
+    "Monitor role-repo sync outcomes and ensure instruction-contract updates propagate correctly.",
+    "Scan role-scoped repos on regular cadence for efficiency-opportunity issues and agent operational feedback.",
+    "Triage agent efficiency feedback for severity, patterns, and cross-role impact.",
+    "Implement high-impact workflow improvements in Context-Engineering based on agent feedback patterns.",
+    "Communicate efficiency improvements back to agents to close feedback loop."
   ],
   "non_responsibilities": [
     "Does not approve protected changes.",

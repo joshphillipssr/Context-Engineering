@@ -13,6 +13,9 @@ Own cross-role Job Description lifecycle stewardship so every role-scoped agent 
 - Keep AGENTS contract updates rooted in canonical sources and generation/sync workflows, not ad hoc role-repo edits.
 - Maintain cross-role Job Description updates as an explicit operational function (intake, source updates, generation/sync, and validation evidence).
 - Ensure each role-scoped agent can explicitly articulate mission, responsibilities, authority boundaries, and prohibited actions from AGENTS.md.
+- Scan role-scoped repos (weekly or per-sprint cadence) for agent efficiency feedback and operational blockers filed under `efficiency-opportunity` label.
+- Triage efficiency feedback: identify patterns, map cross-role impact, and assess implementation priority.
+- Close the feedback loop: comment on efficiency issues with implementation status (fixed, escalated for decision, or deferred with rationale).
 - Ensure role creation work follows `10-templates/agent-work-orders/role-creation-work-order.md`.
 - Enforce registry-first wiring (`00-os/role-registry.yml` + `00-os/scripts/generate-role-wiring.py`).
 - Require deterministic validation evidence for onboarding changes (`generate-role-wiring.py --check`, onboarding validator, app bootstrap validator).
