@@ -17,15 +17,14 @@ Use it for:
 
 ## Consumption Pattern
 
-- Runtime adapters should compose instructions as:
-  - `base.md`
-  - plus one `roles/<role>.md`
-- plus required role-specific protocol includes (for Compliance Officer: `10-templates/compliance-officer-pr-review-brief.md`)
+- Runtime adapters should treat role-repo `AGENTS.md` as canonical whenever available.
+- `base.md` + `roles/<role>.md` are fallback composition sources for runtime bootstrap and image build contexts.
+- Required role-specific protocol includes remain mandatory (for Compliance Officer: `10-templates/compliance-officer-pr-review-brief.md`).
 
-Codex devcontainer startup currently materializes this composition into:
+Codex devcontainer startup currently materializes runtime artifacts as:
 
-- `/workspace/instructions/role-instructions.md`
+- `/workspace/instructions/role-instructions.md` (bootstrap loader that points to role-repo `AGENTS.md`)
 - `/workspace/instructions/AGENTS.md`
 - `/workspace/instructions/copilot-instructions.md`
 
-Other runtimes should consume the same source files directly or generate equivalent runtime artifacts.
+Other runtimes should preserve this policy: `AGENTS.md` is canonical, runtime adapter files are loaders.

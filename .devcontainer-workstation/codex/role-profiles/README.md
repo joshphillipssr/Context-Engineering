@@ -34,7 +34,9 @@ Startup behavior:
 - If `ROLE_GITHUB_AUTH_MODE=app` and all `ROLE_GITHUB_APP_*` values are set, startup runs the role GitHub App auth helper to mint a short-lived installation token and configure `gh`.
 - If any required `ROLE_GITHUB_APP_*` values are missing, startup prints a warning and continues without App auth.
 - `ROLE_PROFILE` defaults to image-baked `IMAGE_ROLE_PROFILE` when not explicitly set at runtime.
-- Runtime role instructions are generated at `/workspace/instructions/role-instructions.md` from role-repo `AGENTS.md` first, then image-baked compiled role instructions, then image-baked fallback sources.
+- Runtime role instructions are generated at `/workspace/instructions/role-instructions.md` as a bootstrap loader that points to role-repo `AGENTS.md` as canonical.
+- If role-repo `AGENTS.md` is missing, runtime remains bootstrap-only (clone/sync/auth recovery actions) until AGENTS is restored.
+- Image-baked compiled instructions are break-glass/operator fallback only; they do not supersede role-repo `AGENTS.md`.
 - Default runtime clone targets are role repos by role:
   - `context-engineering-role-implementation-specialist`
   - `context-engineering-role-compliance-officer`

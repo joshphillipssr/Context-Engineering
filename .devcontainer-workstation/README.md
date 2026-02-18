@@ -309,17 +309,16 @@ In addition, it generates adapter files at:
 - `/workspace/instructions/agent-runtime-policy.md`
 - `/workspace/instructions/role-github-app-auth.env` (role app metadata for deterministic re-mint helper)
 
-Default runtime behavior is fail-closed:
+Default runtime behavior is AGENTS-canonical with bootstrap gating:
 
-- The role workspace repo `AGENTS.md` file is required: `<workspace-role-repo>/AGENTS.md`
-- If it is missing or unreadable, container init fails with a clear error
+- Runtime `role-instructions.md` is a bootstrap loader, not a second policy source.
+- Canonical role contract remains role-repo `AGENTS.md`: `<workspace-role-repo>/AGENTS.md`.
+- If `AGENTS.md` is missing/unreadable, runtime instructions stay in bootstrap-only mode (clone/sync/auth recovery actions only) until restored.
 
 Break-glass override:
 
-- Set `ALLOW_FALLBACK_INSTRUCTIONS=true` to permit fallback instruction loading when role-repo `AGENTS.md` is unavailable.
-- With break-glass enabled, fallback resolution order is:
-  1. image-baked compiled role instructions (`/etc/codex/runtime-role-instructions/<role>.md`)
-  2. image-baked fallback sources (`/etc/codex/agent-instructions/`)
+- Set `ALLOW_FALLBACK_INSTRUCTIONS=true` to permit operator break-glass operation while AGENTS is unavailable.
+- Even with break-glass enabled, role-repo `AGENTS.md` remains canonical and should be restored before normal role execution.
 
 Example break-glass startup:
 
@@ -328,7 +327,7 @@ export ALLOW_FALLBACK_INSTRUCTIONS=true
 bash .devcontainer-workstation/scripts/start-role-workstation.sh --role hraias --source ghcr --auth-mode app --pem-path ~/Downloads/a-hraiagentspecialist.2026-02-17.private-key.pem
 ```
 
-Role-specific images still bake `/etc/codex/runtime-role-instructions/<role>.md` from role-repo artifacts when available at build time.
+Role-specific images still bake `/etc/codex/runtime-role-instructions/<role>.md` from role-repo artifacts when available at build time (operator fallback, not canonical runtime contract).
 
 For `Compliance Officer`, the runtime file includes the PR review protocol from `10-templates/compliance-officer-pr-review-brief.md` (or the image fallback copy when the workspace file is not present).
 

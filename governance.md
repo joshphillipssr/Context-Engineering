@@ -506,6 +506,8 @@ Tool-specific instruction files are adapters, not alternate policy sources.
 - `AGENTS.md` is canonical.
 - `.github/copilot-instructions.md` must point to `AGENTS.md` and must not redefine role authority.
 - Other adapters (Codex, Ollama, etc.) may reformat but must preserve role meaning and boundaries.
+- Runtime `/workspace/instructions/role-instructions.md` must act as a bootstrap loader to role-repo `AGENTS.md`, not a second role-policy source.
+- If role-repo `AGENTS.md` is unavailable, runtime instructions must limit behavior to bootstrap/recovery actions (clone/sync/auth restore) until AGENTS is restored.
 
 ---
 
