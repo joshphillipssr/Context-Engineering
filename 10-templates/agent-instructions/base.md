@@ -42,7 +42,7 @@ If you are running inside a role workstation container:
 Verification commands:
 
 - `env -u GH_TOKEN -u GITHUB_TOKEN gh auth status --hostname github.com`
-- `env -u GH_TOKEN -u GITHUB_TOKEN gh api /user --jq '.login'`
+- `env -u GH_TOKEN -u GITHUB_TOKEN gh api graphql -f query='query { viewer { login } }' --jq '.data.viewer.login'`
 
 Only escalate after re-mint fails. Include:
 
