@@ -162,8 +162,10 @@ render_template "${TEMPLATE_ROOT}/templates/README.md.tmpl" "${OUTPUT_DIR}/READM
 render_template "${TEMPLATE_ROOT}/templates/.vscode/settings.json.tmpl" "${OUTPUT_DIR}/.vscode/settings.json"
 render_template "${TEMPLATE_ROOT}/templates/handbook/README.md.tmpl" "${OUTPUT_DIR}/handbook/README.md"
 render_template "${TEMPLATE_ROOT}/templates/handbook/sops/README.md.tmpl" "${OUTPUT_DIR}/handbook/sops/README.md"
+render_template "${TEMPLATE_ROOT}/templates/handbook/sops/general-process-improvement-loop.md.tmpl" "${OUTPUT_DIR}/handbook/sops/general-process-improvement-loop.md"
 render_template "${TEMPLATE_ROOT}/templates/handbook/runbooks/README.md.tmpl" "${OUTPUT_DIR}/handbook/runbooks/README.md"
 render_template "${TEMPLATE_ROOT}/templates/handbook/templates/README.md.tmpl" "${OUTPUT_DIR}/handbook/templates/README.md"
+render_template "${TEMPLATE_ROOT}/templates/handbook/templates/general-efficiency-opportunity.md.tmpl" "${OUTPUT_DIR}/handbook/templates/general-efficiency-opportunity.md"
 render_template "${TEMPLATE_ROOT}/templates/handbook/references/README.md.tmpl" "${OUTPUT_DIR}/handbook/references/README.md"
 
 echo "Generated role repo scaffold: ${OUTPUT_DIR}"

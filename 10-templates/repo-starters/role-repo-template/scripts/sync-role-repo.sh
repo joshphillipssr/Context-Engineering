@@ -48,8 +48,10 @@ Notes:
     - .vscode/settings.json
     - handbook/README.md
     - handbook/sops/README.md
+    - handbook/sops/general-process-improvement-loop.md
     - handbook/runbooks/README.md
     - handbook/templates/README.md
+    - handbook/templates/general-efficiency-opportunity.md
     - handbook/references/README.md
 USAGE
 }
@@ -305,12 +307,14 @@ cp "$RENDER_DIR/.github/copilot-instructions.md" "$TARGET_DIR/.github/copilot-in
 cp "$RENDER_DIR/.vscode/settings.json" "$TARGET_DIR/.vscode/settings.json"
 cp "$RENDER_DIR/handbook/README.md" "$TARGET_DIR/handbook/README.md"
 cp "$RENDER_DIR/handbook/sops/README.md" "$TARGET_DIR/handbook/sops/README.md"
+cp "$RENDER_DIR/handbook/sops/general-process-improvement-loop.md" "$TARGET_DIR/handbook/sops/general-process-improvement-loop.md"
 cp "$RENDER_DIR/handbook/runbooks/README.md" "$TARGET_DIR/handbook/runbooks/README.md"
 cp "$RENDER_DIR/handbook/templates/README.md" "$TARGET_DIR/handbook/templates/README.md"
+cp "$RENDER_DIR/handbook/templates/general-efficiency-opportunity.md" "$TARGET_DIR/handbook/templates/general-efficiency-opportunity.md"
 cp "$RENDER_DIR/handbook/references/README.md" "$TARGET_DIR/handbook/references/README.md"
 
 if git -C "$TARGET_DIR" diff --quiet -- AGENTS.md README.md .github/copilot-instructions.md .vscode/settings.json \
-  handbook/README.md handbook/sops/README.md handbook/runbooks/README.md handbook/templates/README.md handbook/references/README.md; then
+  handbook/README.md handbook/sops/README.md handbook/sops/general-process-improvement-loop.md handbook/runbooks/README.md handbook/templates/README.md handbook/templates/general-efficiency-opportunity.md handbook/references/README.md; then
   echo "No role-repo sync changes detected for ${FULL_REPO} (${ROLE_SLUG})."
   exit 0
 fi
@@ -321,7 +325,7 @@ git -C "$TARGET_DIR" config user.name "context-engineering-sync[bot]"
 git -C "$TARGET_DIR" config user.email "context-engineering-sync@users.noreply.github.com"
 
 git -C "$TARGET_DIR" add AGENTS.md README.md .github/copilot-instructions.md .vscode/settings.json \
-  handbook/README.md handbook/sops/README.md handbook/runbooks/README.md handbook/templates/README.md handbook/references/README.md
+  handbook/README.md handbook/sops/README.md handbook/sops/general-process-improvement-loop.md handbook/runbooks/README.md handbook/templates/README.md handbook/templates/general-efficiency-opportunity.md handbook/references/README.md
 
 if git -C "$TARGET_DIR" diff --cached --quiet; then
   echo "No staged changes after sync for ${FULL_REPO}."
@@ -368,8 +372,10 @@ Automated sync of role-repo managed artifacts from Context-Engineering source \`
 - \`README.md\`
 - `handbook/README.md`
 - `handbook/sops/README.md`
+- `handbook/sops/general-process-improvement-loop.md`
 - `handbook/runbooks/README.md`
 - `handbook/templates/README.md`
+- `handbook/templates/general-efficiency-opportunity.md`
 - `handbook/references/README.md`
 
 Generated via:
