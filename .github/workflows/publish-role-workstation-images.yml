@@ -44,6 +44,9 @@ jobs:
           - role_profile: systems-architect
             image_suffix: systems-architect
             role_repo: context-engineering-role-systems-architect
+          - role_profile: hr-ai-agent-specialist
+            image_suffix: hr-ai-agent-specialist
+            role_repo: context-engineering-role-hr-ai-agent-specialist
 # GENERATED:END:ROLE_MATRIX
 
     steps:

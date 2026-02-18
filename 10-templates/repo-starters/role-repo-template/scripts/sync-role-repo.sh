@@ -354,21 +354,33 @@ Generated via:
 - \`10-templates/repo-starters/role-repo-template/scripts/build-agent-job-description.py\`
 PRBODY
 
-existing_pr="$(gh pr list --repo "$FULL_REPO" --state open --head "$SYNC_BRANCH" --json number -q '.[0].number')"
+existing_pr="$(gh api "repos/${FULL_REPO}/pulls?state=open&head=${OWNER}:${SYNC_BRANCH}&base=${BASE_BRANCH}" --jq '.[0].number' 2>/dev/null || true)"
 
 if [ -z "$existing_pr" ] || [ "$existing_pr" = "null" ]; then
-  existing_pr="$(gh pr list --repo "$FULL_REPO" --state open --head "${OWNER}:${SYNC_BRANCH}" --json number -q '.[0].number')"
+  existing_pr="$(gh api "repos/${FULL_REPO}/pulls?state=open&head=${SYNC_BRANCH}&base=${BASE_BRANCH}" --jq '.[0].number' 2>/dev/null || true)"
 fi
 
+pr_body="$(cat "$PR_BODY_FILE")"
+
 if [ -n "$existing_pr" ] && [ "$existing_pr" != "null" ]; then
-  gh pr edit --repo "$FULL_REPO" "$existing_pr" --title "$PR_TITLE" --body-file "$PR_BODY_FILE" >/dev/null
+  gh api --method PATCH "repos/${FULL_REPO}/pulls/${existing_pr}" -f title="$PR_TITLE" -f body="$pr_body" >/dev/null
   pr_number="$existing_pr"
 else
   create_err_file="$(mktemp "/tmp/${ROLE_SLUG}-pr-create-XXXXXX.err")"
-  if pr_url="$(gh pr create --repo "$FULL_REPO" --base "$BASE_BRANCH" --head "$SYNC_BRANCH" --title "$PR_TITLE" --body-file "$PR_BODY_FILE" 2>"$create_err_file")"; then
-    pr_number="$(printf '%s' "$pr_url" | awk -F'/' '{print $NF}')"
+  if pr_number="$(
+    gh api --method POST "repos/${FULL_REPO}/pulls" \
+      -f title="$PR_TITLE" \
+      -f head="$SYNC_BRANCH" \
+      -f base="$BASE_BRANCH" \
+      -f body="$pr_body" \
+      --jq '.number' 2>"$create_err_file"
+  )"; then
+    true
   else
-    existing_pr="$(gh pr list --repo "$FULL_REPO" --state open --head "$SYNC_BRANCH" --json number -q '.[0].number')"
+    existing_pr="$(gh api "repos/${FULL_REPO}/pulls?state=open&head=${OWNER}:${SYNC_BRANCH}&base=${BASE_BRANCH}" --jq '.[0].number' 2>/dev/null || true)"
+    if [ -z "$existing_pr" ] || [ "$existing_pr" = "null" ]; then
+      existing_pr="$(gh api "repos/${FULL_REPO}/pulls?state=open&head=${SYNC_BRANCH}&base=${BASE_BRANCH}" --jq '.[0].number' 2>/dev/null || true)"
+    fi
     if [ -n "$existing_pr" ] && [ "$existing_pr" != "null" ]; then
       pr_number="$existing_pr"
     else
@@ -379,11 +391,13 @@ else
 fi
 
 # Best-effort labeling. If labels are missing in target repos, do not fail sync.
-gh pr edit --repo "$FULL_REPO" "$pr_number" --add-label "role:implementation-specialist" --add-label "status:needs-review" >/dev/null 2>&1 || true
+gh api --method POST "repos/${FULL_REPO}/issues/${pr_number}/labels" \
+  -f labels[]="role:implementation-specialist" \
+  -f labels[]="status:needs-review" >/dev/null 2>&1 || true
 
 if [ "$AUTO_MERGE" = "true" ]; then
   pr_meta_file="$(mktemp "/tmp/${ROLE_SLUG}-pr-meta-XXXXXX.json")"
-  if gh pr view --repo "$FULL_REPO" "$pr_number" --json state,isDraft,mergeStateStatus >"$pr_meta_file" 2>/dev/null; then
+  if gh api "repos/${FULL_REPO}/pulls/${pr_number}" >"$pr_meta_file" 2>/dev/null; then
     pr_state="$(python3 - <<'PY' "$pr_meta_file"
 import json
 import sys
@@ -392,9 +406,9 @@ with open(sys.argv[1], "r", encoding="utf-8") as f:
     data = json.load(f)
 
 state = data.get("state", "")
-is_draft = bool(data.get("isDraft", False))
-merge_state = data.get("mergeStateStatus", "")
-print(f"{state}|{str(is_draft).lower()}|{merge_state}")
+is_draft = bool(data.get("draft", False))
+merge_state = (data.get("mergeable_state", "") or "").upper()
+print(f"{state.upper()}|{str(is_draft).lower()}|{merge_state}")
 PY
 )"
     IFS='|' read -r pr_state_value pr_draft_value pr_merge_state <<<"$pr_state"

@@ -64,6 +64,7 @@ The canonical role vocabulary for this repo is:
 - Implementation Specialist
 - Systems Architect
 - Business Analyst
+- HR and AI Agent Specialist
 
 Use canonical role names in PR metadata, labels, approvals, and documentation.
 Legacy role terms are deprecated and must not be introduced in new artifacts.
@@ -204,7 +205,7 @@ All meaningful changes in this repo should be **reviewable**. The default workfl
 1. **Create an Issue** (Executive Sponsor, AI Governance Manager, Business Analyst, or Implementation Specialist) defining: objective, scope, constraints, and definition of done
 2. **Create the branch from the Issue** using `gh issue develop <ISSUE_NUMBER> --checkout` (role occupant)
 3. **Implement on the branch** with focused commits and role-attributed commit messages
-4. **Open a Pull Request** using templates and checklists, including machine-readable PR metadata (see Role Attribution). PR description must link and close the Issue (example: `Closes #<ISSUE_NUMBER>`)
+4. **Open a Pull Request** using templates and checklists, including machine-readable PR metadata (see Role Attribution). PR description must link the primary Issue. Use `Closes #<ISSUE_NUMBER>` when the PR fully resolves the Issue; use `Refs #<ISSUE_NUMBER>` for related but non-closing linkage.
 5. **Apply PR labels** (role occupant) immediately after PR creation using GitHub UI, API/automation, or `gh` to self-identify role and set initial status
 6. **Review**
 

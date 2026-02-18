@@ -6,6 +6,7 @@ It supports role-scoped startup for:
 - `implementation-workstation` (default `Implementation Specialist` profile)
 - `compliance-workstation` (`Compliance Officer` profile)
 - `systems-architect-workstation` (`Systems Architect` profile)
+- `hr-ai-agent-specialist-workstation` (`HR and AI Agent Specialist` profile)
 
 ## 0) Recommended launcher (prompted role/auth/PEM)
 
@@ -71,6 +72,7 @@ export WORKSTATION_DEBUG="true" # optional: verbose init-workstation logging
 # export IMPLEMENTATION_ROLE_GITHUB_APP_PRIVATE_KEY_PATH="/run/secrets/role_github_app_private_key"
 # export COMPLIANCE_ROLE_GITHUB_APP_PRIVATE_KEY_PATH="/run/secrets/role_github_app_private_key"
 # export SYSTEMS_ARCHITECT_ROLE_GITHUB_APP_PRIVATE_KEY_PATH="/run/secrets/role_github_app_private_key"
+# export HR_AI_AGENT_SPECIALIST_ROLE_GITHUB_APP_PRIVATE_KEY_PATH="/run/secrets/role_github_app_private_key"
 # Optional override when needed:
 # export COMPLIANCE_ROLE_GITHUB_AUTH_MODE="user"
 
@@ -83,6 +85,9 @@ $COMPOSE_CMD up -d --build implementation-workstation
 
 # Optional: Systems Architect role-scoped container
 # $COMPOSE_CMD --profile systems-architect up -d --build systems-architect-workstation
+
+# Optional: HR and AI Agent Specialist role-scoped container
+# $COMPOSE_CMD --profile hr-ai-agent-specialist up -d --build hr-ai-agent-specialist-workstation
 ```
 
 ## 1a) Start from published GHCR role packages
@@ -107,12 +112,14 @@ fi
 # export IMPLEMENTATION_ROLE_GITHUB_APP_PRIVATE_KEY_PATH="/run/secrets/role_github_app_private_key"
 # export COMPLIANCE_ROLE_GITHUB_APP_PRIVATE_KEY_PATH="/run/secrets/role_github_app_private_key"
 # export SYSTEMS_ARCHITECT_ROLE_GITHUB_APP_PRIVATE_KEY_PATH="/run/secrets/role_github_app_private_key"
+# export HR_AI_AGENT_SPECIALIST_ROLE_GITHUB_APP_PRIVATE_KEY_PATH="/run/secrets/role_github_app_private_key"
 
 $COMPOSE_CMD -f docker-compose.ghcr.yml down
 $COMPOSE_CMD -f docker-compose.ghcr.yml up -d implementation-workstation
 # Optional:
 # $COMPOSE_CMD -f docker-compose.ghcr.yml --profile compliance-officer up -d compliance-workstation
 # $COMPOSE_CMD -f docker-compose.ghcr.yml --profile systems-architect up -d systems-architect-workstation
+# $COMPOSE_CMD -f docker-compose.ghcr.yml --profile hr-ai-agent-specialist up -d hr-ai-agent-specialist-workstation
 ```
 
 Default package names:
@@ -120,6 +127,7 @@ Default package names:
 - `ghcr.io/josh-phillips-llc/context-engineering-workstation-implementation-specialist:latest`
 - `ghcr.io/josh-phillips-llc/context-engineering-workstation-compliance-officer:latest`
 - `ghcr.io/josh-phillips-llc/context-engineering-workstation-systems-architect:latest`
+- `ghcr.io/josh-phillips-llc/context-engineering-workstation-hr-ai-agent-specialist:latest`
 
 Release naming and versioning conventions:
 
@@ -136,6 +144,7 @@ Verify the published platforms include both `linux/amd64` and `linux/arm64`:
 docker buildx imagetools inspect ghcr.io/josh-phillips-llc/context-engineering-workstation-implementation-specialist:latest
 docker buildx imagetools inspect ghcr.io/josh-phillips-llc/context-engineering-workstation-compliance-officer:latest
 docker buildx imagetools inspect ghcr.io/josh-phillips-llc/context-engineering-workstation-systems-architect:latest
+docker buildx imagetools inspect ghcr.io/josh-phillips-llc/context-engineering-workstation-hr-ai-agent-specialist:latest
 ```
 
 If you exported `GH_BOOTSTRAP_TOKEN` for startup bootstrap, clear it after the container is running:
@@ -204,6 +213,7 @@ Confirm container is running:
 $COMPOSE_CMD ps
 docker ps --filter name=implementation-workstation
 docker ps --filter name=compliance-workstation
+docker ps --filter name=hr-ai-agent-specialist-workstation
 ```
 
 If a role container is not `Up`, inspect logs:
@@ -211,6 +221,7 @@ If a role container is not `Up`, inspect logs:
 ```bash
 $COMPOSE_CMD logs --tail=200 implementation-workstation
 $COMPOSE_CMD logs --tail=200 compliance-workstation
+$COMPOSE_CMD logs --tail=200 hr-ai-agent-specialist-workstation
 ```
 
 ## 2) Clone role repos into container-owned storage
@@ -227,6 +238,9 @@ On container startup, each role container auto-clones its role repo by default:
 - `systems-architect-workstation`
   - URL: `https://github.com/Josh-Phillips-LLC/context-engineering-role-systems-architect.git`
   - Path: `/workspace/Projects/context-engineering-role-systems-architect`
+- `hr-ai-agent-specialist-workstation`
+  - URL: `https://github.com/Josh-Phillips-LLC/context-engineering-role-hr-ai-agent-specialist.git`
+  - Path: `/workspace/Projects/context-engineering-role-hr-ai-agent-specialist`
 
 Verify clone status:
 
@@ -234,6 +248,7 @@ Verify clone status:
 docker exec -it implementation-workstation bash -lc 'ls -la /workspace/Projects/context-engineering-role-implementation-specialist'
 docker exec -it compliance-workstation bash -lc 'ls -la /workspace/Projects/context-engineering-role-compliance-officer'
 docker exec -it systems-architect-workstation bash -lc 'ls -la /workspace/Projects/context-engineering-role-systems-architect'
+docker exec -it hr-ai-agent-specialist-workstation bash -lc 'ls -la /workspace/Projects/context-engineering-role-hr-ai-agent-specialist'
 ```
 
 If auto-clone failed, run manual PAT auth and clone inside the container:
@@ -259,9 +274,11 @@ If needed, you can override default role repo targets with:
 - `IMPLEMENTATION_WORKSPACE_REPO_URL`
 - `COMPLIANCE_WORKSPACE_REPO_URL`
 - `SYSTEMS_ARCHITECT_WORKSPACE_REPO_URL`
+- `HR_AI_AGENT_SPECIALIST_WORKSPACE_REPO_URL`
 - `IMPLEMENTATION_WORKSPACE_REPO_DIR_NAME`
 - `COMPLIANCE_WORKSPACE_REPO_DIR_NAME`
 - `SYSTEMS_ARCHITECT_WORKSPACE_REPO_DIR_NAME`
+- `HR_AI_AGENT_SPECIALIST_WORKSPACE_REPO_DIR_NAME`
 
 ## 3) Attach VS Code to running container
 
@@ -269,11 +286,12 @@ In local (non-containerized) VS Code:
 
 1. Open Command Palette
 2. Run `Dev Containers: Attach to Running Container...`
-3. Select `implementation-workstation`, `compliance-workstation`, or `systems-architect-workstation`
+3. Select `implementation-workstation`, `compliance-workstation`, `systems-architect-workstation`, or `hr-ai-agent-specialist-workstation`
 4. Open folder matching the role container:
    - `/workspace/Projects/context-engineering-role-implementation-specialist`
    - `/workspace/Projects/context-engineering-role-compliance-officer`
-  - `/workspace/Projects/context-engineering-role-systems-architect`
+   - `/workspace/Projects/context-engineering-role-systems-architect`
+   - `/workspace/Projects/context-engineering-role-hr-ai-agent-specialist`
 
 ## 4) Codex config defaults
 
@@ -313,6 +331,7 @@ Canonical role-based instruction sources live in:
 - `10-templates/agent-instructions/base.md`
 - `10-templates/agent-instructions/roles/implementation-specialist.md`
 - `10-templates/agent-instructions/roles/compliance-officer.md`
+- `10-templates/agent-instructions/roles/hr-ai-agent-specialist.md`
 - `10-templates/compliance-officer-pr-review-brief.md` (required protocol include for Compliance Officer)
 
 These files are tool-agnostic and should be reused by non-Codex runtimes (for example, Copilot or Ollama adapters) rather than duplicating role logic in vendor-specific locations.

@@ -39,6 +39,7 @@ Startup behavior:
   - `context-engineering-role-implementation-specialist`
   - `context-engineering-role-compliance-officer`
   - `context-engineering-role-systems-architect`
+  - `context-engineering-role-hr-ai-agent-specialist`
 - Runtime adapter instruction files are generated at `/workspace/instructions/AGENTS.md` and `/workspace/instructions/copilot-instructions.md`.
 - VS Code chat defaults are ensured at `/workspace/settings/vscode/settings.json`.
 - Compliance Officer runtime instructions include `10-templates/compliance-officer-pr-review-brief.md` (or image fallback) as a required protocol include.

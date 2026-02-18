@@ -129,6 +129,50 @@ services:
     init: true
     entrypoint: ["/usr/local/bin/init-workstation.sh"]
     command: ["sleep", "infinity"]
+
+  hr-ai-agent-specialist-workstation:
+    build:
+      context: ..
+      dockerfile: .devcontainer-workstation/Dockerfile
+      args:
+        IMAGE_ROLE_PROFILE: hr-ai-agent-specialist
+    container_name: hr-ai-agent-specialist-workstation
+    profiles:
+      - hr-ai-agent-specialist
+    volumes:
+      - hr_ai_agent_specialist_projects_data:/workspace
+      - hr_ai_agent_specialist_gh_config:/root/.config/gh
+      - hr_ai_agent_specialist_git_config:/root/.config/git
+      # - ssh_data:/root/.ssh
+      - hr_ai_agent_specialist_codex_home:/root/.codex
+      # Optional: forward host SSH agent into container for commit signing.
+      # Set HOST_SSH_AGENT_SOCK before compose up.
+      # - type: bind
+      #  source: ${HOST_SSH_AGENT_SOCK:-/tmp/codex-no-ssh-agent}
+      #  target: /ssh-agent
+    environment:
+      - GH_BOOTSTRAP_TOKEN=${GH_BOOTSTRAP_TOKEN:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - WORKSTATION_DEBUG=${WORKSTATION_DEBUG:-false}
+      - CODEX_HOME=/root/.codex
+      # - SSH_AUTH_SOCK=/ssh-agent
+      - ROLE_PROFILE=hr-ai-agent-specialist
+      - ROLE_GITHUB_AUTH_MODE=${HR_AI_AGENT_SPECIALIST_ROLE_GITHUB_AUTH_MODE:-app}
+      - ROLE_GITHUB_APP_ID=${HR_AI_AGENT_SPECIALIST_ROLE_GITHUB_APP_ID:-2885628}
+      - ROLE_GITHUB_APP_INSTALLATION_ID=${HR_AI_AGENT_SPECIALIST_ROLE_GITHUB_APP_INSTALLATION_ID:-110711332}
+      - ROLE_GITHUB_APP_PRIVATE_KEY_PATH=${HR_AI_AGENT_SPECIALIST_ROLE_GITHUB_APP_PRIVATE_KEY_PATH:-}
+      - WORKSPACE_REPO_OWNER=${WORKSPACE_REPO_OWNER:-Josh-Phillips-LLC}
+      - WORKSPACE_REPO_URL=${HR_AI_AGENT_SPECIALIST_WORKSPACE_REPO_URL:-https://github.com/Josh-Phillips-LLC/context-engineering-role-hr-ai-agent-specialist.git}
+      - WORKSPACE_REPO_DIR=/workspace/Projects/${HR_AI_AGENT_SPECIALIST_WORKSPACE_REPO_DIR_NAME:-context-engineering-role-hr-ai-agent-specialist}
+      - AUTO_CLONE_WORKSPACE_REPO=${AUTO_CLONE_WORKSPACE_REPO:-true}
+
+    # Testing-mode autonomy
+    cap_add:
+      - ALL
+    privileged: true
+    init: true
+    entrypoint: ["/usr/local/bin/init-workstation.sh"]
+    command: ["sleep", "infinity"]
 # GENERATED:END:SERVICES
 
 volumes:
@@ -145,5 +189,9 @@ volumes:
   systems_architect_gh_config:
   systems_architect_git_config:
   systems_architect_codex_home:
+  hr_ai_agent_specialist_projects_data:
+  hr_ai_agent_specialist_gh_config:
+  hr_ai_agent_specialist_git_config:
+  hr_ai_agent_specialist_codex_home:
 # GENERATED:END:VOLUMES
   # ssh_data:
