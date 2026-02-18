@@ -46,6 +46,11 @@ Notes:
     - README.md
     - .github/copilot-instructions.md
     - .vscode/settings.json
+    - handbook/README.md
+    - handbook/sops/README.md
+    - handbook/runbooks/README.md
+    - handbook/templates/README.md
+    - handbook/references/README.md
 USAGE
 }
 
@@ -162,6 +167,11 @@ run_publishability_preflight() {
     "README.md"
     ".github/copilot-instructions.md"
     ".vscode/settings.json"
+    "handbook/README.md"
+    "handbook/sops/README.md"
+    "handbook/runbooks/README.md"
+    "handbook/templates/README.md"
+    "handbook/references/README.md"
   )
   local -a scan_paths=()
   local -a missing=()
@@ -288,12 +298,19 @@ fi
 git clone "https://github.com/${FULL_REPO}.git" "$TARGET_DIR" --branch "$BASE_BRANCH" --single-branch >/dev/null
 
 mkdir -p "$TARGET_DIR/.github" "$TARGET_DIR/.vscode"
+mkdir -p "$TARGET_DIR/handbook/sops" "$TARGET_DIR/handbook/runbooks" "$TARGET_DIR/handbook/templates" "$TARGET_DIR/handbook/references"
 cp "$RENDER_DIR/AGENTS.md" "$TARGET_DIR/AGENTS.md"
 cp "$RENDER_DIR/README.md" "$TARGET_DIR/README.md"
 cp "$RENDER_DIR/.github/copilot-instructions.md" "$TARGET_DIR/.github/copilot-instructions.md"
 cp "$RENDER_DIR/.vscode/settings.json" "$TARGET_DIR/.vscode/settings.json"
+cp "$RENDER_DIR/handbook/README.md" "$TARGET_DIR/handbook/README.md"
+cp "$RENDER_DIR/handbook/sops/README.md" "$TARGET_DIR/handbook/sops/README.md"
+cp "$RENDER_DIR/handbook/runbooks/README.md" "$TARGET_DIR/handbook/runbooks/README.md"
+cp "$RENDER_DIR/handbook/templates/README.md" "$TARGET_DIR/handbook/templates/README.md"
+cp "$RENDER_DIR/handbook/references/README.md" "$TARGET_DIR/handbook/references/README.md"
 
-if git -C "$TARGET_DIR" diff --quiet -- AGENTS.md README.md .github/copilot-instructions.md .vscode/settings.json; then
+if git -C "$TARGET_DIR" diff --quiet -- AGENTS.md README.md .github/copilot-instructions.md .vscode/settings.json \
+  handbook/README.md handbook/sops/README.md handbook/runbooks/README.md handbook/templates/README.md handbook/references/README.md; then
   echo "No role-repo sync changes detected for ${FULL_REPO} (${ROLE_SLUG})."
   exit 0
 fi
@@ -303,7 +320,8 @@ git -C "$TARGET_DIR" checkout -B "$SYNC_BRANCH" >/dev/null
 git -C "$TARGET_DIR" config user.name "context-engineering-sync[bot]"
 git -C "$TARGET_DIR" config user.email "context-engineering-sync@users.noreply.github.com"
 
-git -C "$TARGET_DIR" add AGENTS.md README.md .github/copilot-instructions.md .vscode/settings.json
+git -C "$TARGET_DIR" add AGENTS.md README.md .github/copilot-instructions.md .vscode/settings.json \
+  handbook/README.md handbook/sops/README.md handbook/runbooks/README.md handbook/templates/README.md handbook/references/README.md
 
 if git -C "$TARGET_DIR" diff --cached --quiet; then
   echo "No staged changes after sync for ${FULL_REPO}."
@@ -348,6 +366,11 @@ Automated sync of role-repo managed artifacts from Context-Engineering source \`
 - \`.github/copilot-instructions.md\`
 - \`.vscode/settings.json\`
 - \`README.md\`
+- `handbook/README.md`
+- `handbook/sops/README.md`
+- `handbook/runbooks/README.md`
+- `handbook/templates/README.md`
+- `handbook/references/README.md`
 
 Generated via:
 - \`10-templates/repo-starters/role-repo-template/scripts/render-role-repo-template.sh\`

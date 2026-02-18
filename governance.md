@@ -523,6 +523,19 @@ Tool-specific instruction files are adapters, not alternate policy sources.
 - Runtime `/workspace/instructions/role-instructions.md` must act as a bootstrap loader to role-repo `AGENTS.md`, not a second role-policy source.
 - If role-repo `AGENTS.md` is unavailable, runtime instructions must limit behavior to bootstrap/recovery actions (clone/sync/auth restore) until AGENTS is restored.
 
+#### Role repo self-sufficiency (Agent Handbook)
+
+Role repos must be self-sufficient for daily agent work; `Context-Engineering` should only be required to change governance or templates.
+
+Each role repo must include an Agent Handbook under `handbook/` with at least:
+
+- SOPs (`handbook/sops/`)
+- Runbooks (`handbook/runbooks/`)
+- Templates (`handbook/templates/`)
+- References (`handbook/references/`)
+
+The handbook complements `AGENTS.md` by providing the practical, role-specific materials needed to execute work without pulling Context-Engineering.
+
 ---
 
 ## Security Model
