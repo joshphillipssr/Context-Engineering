@@ -9,7 +9,7 @@ approval_policy = "never"
 # Role workstations default to no approval prompts in isolated container environments.
 
 project_root_markers = [".git", ".hg", ".sl", ".github", ".ai"]
-project_doc_fallback_filenames = ["instructions.md", "copilot-instructions.md"]
+project_doc_fallback_filenames = ["instructions.md", "copilot-instructions.md", "continue-instructions.md"]
 project_doc_max_bytes = 65536
 
 sandbox_mode = "danger-full-access"

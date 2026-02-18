@@ -285,6 +285,8 @@ In addition, it generates adapter files at:
 
 - `/workspace/instructions/AGENTS.md`
 - `/workspace/instructions/copilot-instructions.md`
+- `/workspace/instructions/continue-instructions.md`
+- `/workspace/instructions/agent-runtime-policy.md`
 - `/workspace/instructions/role-github-app-auth.env` (role app metadata for deterministic re-mint helper)
 
 Instruction source resolution order:
@@ -308,7 +310,9 @@ The init script also ensures VS Code chat defaults at `/workspace/settings/vscod
 
 ### Full in-container access policy
 
-Role workstations intentionally run Codex with full in-container access (`approval_policy = "never"`, `sandbox_mode = "danger-full-access"`).
+Role workstations intentionally run all in-container agent runtimes with full container-local access.
+This policy applies to Codex, Copilot, Continue, and future in-container integrations.
+For Codex, defaults are enforced as `approval_policy = "never"`, `sandbox_mode = "danger-full-access"`, and writable roots fallback `writable_roots = ["/"]`.
 This is safe in this architecture because each role runs in an isolated, role-scoped container with role attribution and separated runtime state.
 Expected behavior: commands that use temp paths (for example `/tmp` and `mktemp`) run without approval prompts.
 
