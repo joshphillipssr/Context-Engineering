@@ -255,6 +255,20 @@ Use the following triage classes for in-flight findings during Issue/PR work:
 - Templates and checklists preferred over long prose
 - TODOs added where human judgment is needed
 
+### Agent process-improvement loop (required)
+
+Agents must not only complete assigned work; they must also identify reusable workflow improvements.
+
+Required behavior after substantive task execution:
+
+1. Perform a brief efficiency reflection: "How could this have been more efficient?"
+2. If reusable friction/workaround occurred, create or link an `efficiency-opportunity` issue before handoff.
+3. Efficiency reports must include, at minimum: blocker type, severity, impact, workaround used, and suggested fix.
+4. Apply labels `efficiency-opportunity` and `agent-feedback` on efficiency issues.
+5. If an equivalent open issue exists, link it instead of duplicating; append current evidence/context.
+
+This loop is mandatory for all role-scoped agents and is part of role-performance expectations.
+
 ### Role-repo instruction publication gate (required)
 
 Any PR that changes role-instruction generation logic, role-repo templates, or generated `AGENTS.md` contract content must include:

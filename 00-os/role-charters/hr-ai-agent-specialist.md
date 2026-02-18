@@ -53,6 +53,8 @@
 - Implement high-impact improvements: create Context-Engineering issues/PRs for governance, policy, or container-level changes needed.
 - Communicate improvements back to agents: comment on original efficiency issues to close the feedback loop and demonstrate responsiveness.
 - Recommend process improvements to governance and role leadership based on systemic friction patterns.
+- Enforce deterministic reporting behavior across roles: when reusable friction occurs, agents must file or link an `efficiency-opportunity` issue before task handoff.
+- Ensure efficiency reports contain blocker type, severity, impact, workaround used, suggested fix, and cross-role applicability signal.
 
 ## Explicit Non-Responsibilities
 - Does not approve protected changes to governance.md or role charters without Executive Sponsor authorization.

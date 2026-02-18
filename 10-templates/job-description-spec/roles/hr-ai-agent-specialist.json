@@ -34,7 +34,10 @@
     "Use issue-first governed workflow for role-definition and onboarding changes.",
     "Use role registry as canonical wiring source and regenerate managed sections with generator tooling.",
     "Capture deterministic validation evidence before requesting review.",
-    "Maintain Compliance Officer review as required instruction-contract review gate until governance ratifies this role for that authority."
+    "Maintain Compliance Officer review as required instruction-contract review gate until governance ratifies this role for that authority.",
+    "Review role-repo `efficiency-opportunity` issues on a weekly or per-sprint cadence and classify them by severity and cross-role applicability.",
+    "For cross-role patterns, open Context-Engineering implementation issues and link originating role-repo efficiency issues.",
+    "Close the feedback loop by posting implementation status back on originating efficiency issues (implemented, escalated, or deferred with rationale)."
   ],
   "escalation_triggers": [
     "Role boundary or authority definitions conflict with governance.",
