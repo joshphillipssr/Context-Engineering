@@ -45,10 +45,16 @@ else
     echo "FAIL: Runtime policy missing full container-local access language" >&2
     exit_code=$((exit_code | EXIT_POLICY_MISMATCH))
   fi
-  if grep -qE "Codex|Copilot|Continue" "$RUNTIME_POLICY_FILE"; then
+  missing_runtime_mentions=()
+  for runtime_name in Codex Copilot Continue; do
+    if ! grep -q "$runtime_name" "$RUNTIME_POLICY_FILE"; then
+      missing_runtime_mentions+=("$runtime_name")
+    fi
+  done
+  if [ "${#missing_runtime_mentions[@]}" -eq 0 ]; then
     echo "PASS: Runtime policy covers Codex, Copilot, Continue"
   else
-    echo "FAIL: Runtime policy does not document all-agent coverage" >&2
+    echo "FAIL: Runtime policy missing runtime mention(s): ${missing_runtime_mentions[*]}" >&2
     exit_code=$((exit_code | EXIT_POLICY_MISMATCH))
   fi
 fi
@@ -102,8 +108,8 @@ for adapter_file in "$RUNTIME_AGENTS_ADAPTER_FILE" "$RUNTIME_COPILOT_INSTRUCTION
     if grep -q "agent-runtime-policy.md\|runtime-access policy" "$adapter_file"; then
       echo "PASS: $adapter_name references shared runtime policy"
     else
-      echo "WARN: $adapter_name may not reference shared runtime policy" >&2
-      # Not a hard failure; adapters may reference policy indirectly
+      echo "FAIL: $adapter_name does not reference shared runtime policy" >&2
+      exit_code=$((exit_code | EXIT_ADAPTER_MISMATCH))
     fi
   fi
 done

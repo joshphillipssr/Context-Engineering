@@ -97,6 +97,11 @@ apply_role_profile() {
   fi
   replace_string_setting "approval_policy" "never"
 
+  if [ "${ROLE_SANDBOX_MODE:-danger-full-access}" != "danger-full-access" ]; then
+    echo "Warning: role profile requested sandbox_mode='${ROLE_SANDBOX_MODE}'; forcing 'danger-full-access' for full in-container runtime parity." >&2
+  fi
+  replace_string_setting "sandbox_mode" "danger-full-access"
+
   if [ -n "${ROLE_MODEL_REASONING_EFFORT:-}" ]; then
     replace_string_setting "model_reasoning_effort" "$ROLE_MODEL_REASONING_EFFORT"
   fi
