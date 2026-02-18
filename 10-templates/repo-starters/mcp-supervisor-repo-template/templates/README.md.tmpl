@@ -1,0 +1,48 @@
+# {{REPO_NAME}}
+
+Containerized MCP supervisor service scaffold generated from Context-Engineering templates.
+
+## Generated Metadata
+
+- Source Ref: `{{SOURCE_REF}}`
+- Generated At (UTC): `{{GENERATED_AT_UTC}}`
+
+## Purpose
+
+This repository hosts a supervisor MCP service that accepts governed escalation requests from local worker agents via `ask_codex_supervisor`.
+
+## Contracts
+
+Canonical tool contracts are stored in `contracts/`:
+
+- `ask-codex-supervisor.request.schema.json`
+- `ask-codex-supervisor.response.schema.json`
+- `ask-codex-supervisor.tool.json`
+
+## Quick Start
+
+```bash
+cp .env.example .env
+
+# Build and run
+docker compose up --build
+```
+
+## Local Run (without Docker)
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python src/supervisor_mcp_server.py
+```
+
+## Environment
+
+- `CODEX_API_KEY`: API key used by future Codex proxy integration
+- `CODEX_MODEL`: Codex model identifier (default: `gpt-5`)
+
+## Governance
+
+- Contract shape and policy expectations are governed by Context-Engineering.
+- Direct edits to contract schemas in this repository should be treated as generated drift unless intentionally promoted upstream.
