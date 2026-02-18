@@ -5,15 +5,15 @@
 model = "gpt-5.3-codex"
 model_reasoning_effort = "xhigh"
 
-approval_policy = "on-request"
-# User "never" for full unattended, also consider "on-failure"
+approval_policy = "never"
+# Role workstations default to no approval prompts in isolated container environments.
 
 project_root_markers = [".git", ".hg", ".sl", ".github", ".ai"]
-project_doc_fallback_filenames = ["instructions.md", "copilot-instructions.md"]
+project_doc_fallback_filenames = ["instructions.md", "copilot-instructions.md", "continue-instructions.md"]
 project_doc_max_bytes = 65536
 
-sandbox_mode = "workspace-write"
-# use "danger-full-access" if container is strongly isolated and disposable
+sandbox_mode = "danger-full-access"
+# Role workstations intentionally use full in-container access to avoid temp-path prompt failures.
 
 model_personality = "pragmatic"
 web_search = "live"
@@ -29,7 +29,7 @@ experimental_use_profile = false
 [sandbox_workspace_write]
 exclude_tmpdir_env_var = false
 exclude_slash_tmp = false
-writable_roots = ["/workspace/Projects"]
+writable_roots = ["/"]
 network_access = true
 
 [features]

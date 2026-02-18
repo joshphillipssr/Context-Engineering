@@ -102,7 +102,8 @@ COPY .devcontainer-workstation/scripts/init-workstation.sh /usr/local/bin/init-w
 COPY .devcontainer-workstation/scripts/setup-role-github-app-auth.sh /usr/local/bin/setup-role-github-app-auth.sh
 COPY .devcontainer-workstation/scripts/remint-role-github-app-auth.sh /usr/local/bin/remint-role-github-app-auth.sh
 COPY .devcontainer-workstation/scripts/gh-role.sh /usr/local/bin/gh-role
-RUN chmod +x /usr/local/bin/init-workstation.sh /usr/local/bin/setup-role-github-app-auth.sh /usr/local/bin/remint-role-github-app-auth.sh /usr/local/bin/gh-role
+COPY .devcontainer-workstation/scripts/verify-runtime-policy.sh /usr/local/bin/verify-runtime-policy
+RUN chmod +x /usr/local/bin/init-workstation.sh /usr/local/bin/setup-role-github-app-auth.sh /usr/local/bin/remint-role-github-app-auth.sh /usr/local/bin/gh-role /usr/local/bin/verify-runtime-policy
 ENV IMAGE_ROLE_PROFILE=${IMAGE_ROLE_PROFILE}
 
 WORKDIR /workspace
