@@ -30,6 +30,7 @@ WORKSPACE_REPO_NAME_DEFAULT="${WORKSPACE_REPO_NAME_DEFAULT:-context-engineering-
 WORKSPACE_REPO_URL="${WORKSPACE_REPO_URL:-https://github.com/${WORKSPACE_REPO_OWNER}/${WORKSPACE_REPO_NAME_DEFAULT}.git}"
 WORKSPACE_REPO_DIR="${WORKSPACE_REPO_DIR:-/workspace/Projects/${WORKSPACE_REPO_NAME_DEFAULT}}"
 AUTO_CLONE_WORKSPACE_REPO="${AUTO_CLONE_WORKSPACE_REPO:-true}"
+ALLOW_FALLBACK_INSTRUCTIONS="${ALLOW_FALLBACK_INSTRUCTIONS:-false}"
 ROLE_GITHUB_APP_AUTH_SCRIPT="${ROLE_GITHUB_APP_AUTH_SCRIPT:-${SCRIPT_DIR}/setup-role-github-app-auth.sh}"
 GH_BOOTSTRAP_TOKEN="${GH_BOOTSTRAP_TOKEN:-}"
 ROLE_GITHUB_AUTH_MODE_RUNTIME="${ROLE_GITHUB_AUTH_MODE:-}"
@@ -123,15 +124,28 @@ render_runtime_role_instructions() {
   local compliance_brief_file="${WORKSPACE_REPO_DIR}/${COMPLIANCE_REVIEW_BRIEF_WORKSPACE_REL}"
   local compiled_role_file="${BAKED_COMPILED_ROLE_INSTRUCTIONS_DIR}/${ROLE_PROFILE}.md"
   local target_file="${RUNTIME_ROLE_INSTRUCTIONS_FILE}"
+  local allow_fallback_normalized
 
   mkdir -p "$(dirname "$target_file")"
 
-  if [ -f "$workspace_agents_file" ]; then
+  allow_fallback_normalized="$(printf '%s' "$ALLOW_FALLBACK_INSTRUCTIONS" | tr '[:upper:]' '[:lower:]')"
+
+  if [ -r "$workspace_agents_file" ]; then
     cp "$workspace_agents_file" "$target_file"
     chmod 444 "$target_file"
     echo "Generated runtime role instructions at ${target_file} from workspace role repo AGENTS.md."
     return
   fi
+
+  if [ "$allow_fallback_normalized" != "true" ]; then
+    rm -f "$target_file"
+    echo "Error: required role-repo AGENTS.md is missing or unreadable: ${workspace_agents_file}" >&2
+    echo "Fail-closed instruction loading is active (ALLOW_FALLBACK_INSTRUCTIONS=${ALLOW_FALLBACK_INSTRUCTIONS})." >&2
+    echo "Fix role-repo clone/sync at ${WORKSPACE_REPO_URL} or set ALLOW_FALLBACK_INSTRUCTIONS=true for break-glass fallback." >&2
+    return 1
+  fi
+
+  echo "Warning: ALLOW_FALLBACK_INSTRUCTIONS=true; using fallback instruction sources because ${workspace_agents_file} is unavailable." >&2
 
   if [ ! -f "$base_file" ] || [ ! -f "$role_file" ]; then
     if [ -f "$compiled_role_file" ]; then
