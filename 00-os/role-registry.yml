@@ -5,8 +5,9 @@
 # 
 # To add a new role:
 # 1. Add an entry to the roles list below
-# 2. Run: 00-os/scripts/generate-role-wiring.py
-# 3. Commit both the registry change and the generated outputs
+# 2. Include git_identity (name + noreply email) for deterministic commit attribution
+# 3. Run: 00-os/scripts/generate-role-wiring.py
+# 4. Commit both the registry change and the generated outputs
 # 
 # DO NOT manually edit generated sections in target files.
 # Update this registry and regenerate instead.
@@ -22,6 +23,9 @@ roles:
     display_name: Implementation Specialist
     shorthand: implementation
     repo_name: context-engineering-role-implementation-specialist
+    git_identity:
+      name: a-implementationspecialist[bot]
+      email: 261284965+a-implementationspecialist[bot]@users.noreply.github.com
     
     # GitHub App configuration
     github_app:
@@ -47,6 +51,9 @@ roles:
     display_name: Compliance Officer
     shorthand: compliance
     repo_name: context-engineering-role-compliance-officer
+    git_identity:
+      name: a-complianceofficer[bot]
+      email: 261288374+a-complianceofficer[bot]@users.noreply.github.com
     
     github_app:
       app_id_secret: COMPLIANCE_OFFICER_APP_ID
@@ -69,6 +76,9 @@ roles:
     display_name: Systems Architect
     shorthand: systems-architect
     repo_name: context-engineering-role-systems-architect
+    git_identity:
+      name: a-systemsarchitect[bot]
+      email: 261288710+a-systemsarchitect[bot]@users.noreply.github.com
     
     github_app:
       app_id_secret: SYSTEMS_ARCHITECT_APP_ID
@@ -91,6 +101,9 @@ roles:
     display_name: HR and AI Agent Specialist
     shorthand: hraias
     repo_name: context-engineering-role-hr-ai-agent-specialist
+    git_identity:
+      name: a-hraiagentspecialist[bot]
+      email: 262162836+a-hraiagentspecialist[bot]@users.noreply.github.com
 
     github_app:
       app_id_secret: HR_AI_AGENT_SPECIALIST_APP_ID
@@ -170,6 +183,8 @@ templates:
         - WORKSPACE_REPO_OWNER=${WORKSPACE_REPO_OWNER:-Josh-Phillips-LLC}
         - WORKSPACE_REPO_URL=${{ '{' + github_app.env_prefix + '_WORKSPACE_REPO_URL:-https://github.com/Josh-Phillips-LLC/' + repo_name + '.git}' }}
         - WORKSPACE_REPO_DIR=/workspace/Projects/${{ '{' + github_app.env_prefix + '_WORKSPACE_REPO_DIR_NAME:-' + repo_name + '}' }}
+        - ROLE_GIT_IDENTITY_NAME=${{ '{' + github_app.env_prefix + '_ROLE_GIT_IDENTITY_NAME:-' + git_identity.name + '}' }}
+        - ROLE_GIT_IDENTITY_EMAIL=${{ '{' + github_app.env_prefix + '_ROLE_GIT_IDENTITY_EMAIL:-' + git_identity.email + '}' }}
         - AUTO_CLONE_WORKSPACE_REPO=${AUTO_CLONE_WORKSPACE_REPO:-true}
         - ALLOW_FALLBACK_INSTRUCTIONS=${ALLOW_FALLBACK_INSTRUCTIONS:-false}
   

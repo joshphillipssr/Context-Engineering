@@ -40,6 +40,8 @@ ROLE_GITHUB_AUTH_MODE_RUNTIME="${ROLE_GITHUB_AUTH_MODE:-}"
 ROLE_GITHUB_APP_ID_RUNTIME="${ROLE_GITHUB_APP_ID:-}"
 ROLE_GITHUB_APP_INSTALLATION_ID_RUNTIME="${ROLE_GITHUB_APP_INSTALLATION_ID:-}"
 ROLE_GITHUB_APP_PRIVATE_KEY_PATH_RUNTIME="${ROLE_GITHUB_APP_PRIVATE_KEY_PATH:-}"
+ROLE_GIT_IDENTITY_NAME_RUNTIME="${ROLE_GIT_IDENTITY_NAME:-}"
+ROLE_GIT_IDENTITY_EMAIL_RUNTIME="${ROLE_GIT_IDENTITY_EMAIL:-}"
 
 replace_string_setting() {
   local key="$1"
@@ -93,6 +95,12 @@ apply_role_profile() {
   if [ -n "${ROLE_GITHUB_APP_PRIVATE_KEY_PATH_RUNTIME:-}" ]; then
     ROLE_GITHUB_APP_PRIVATE_KEY_PATH="$ROLE_GITHUB_APP_PRIVATE_KEY_PATH_RUNTIME"
   fi
+  if [ -n "${ROLE_GIT_IDENTITY_NAME_RUNTIME:-}" ]; then
+    ROLE_GIT_IDENTITY_NAME="$ROLE_GIT_IDENTITY_NAME_RUNTIME"
+  fi
+  if [ -n "${ROLE_GIT_IDENTITY_EMAIL_RUNTIME:-}" ]; then
+    ROLE_GIT_IDENTITY_EMAIL="$ROLE_GIT_IDENTITY_EMAIL_RUNTIME"
+  fi
 
   if [ "${ROLE_APPROVAL_POLICY:-never}" != "never" ]; then
     echo "Warning: role profile requested approval_policy='${ROLE_APPROVAL_POLICY}'; forcing 'never' for full in-container runtime parity." >&2
@@ -122,6 +130,23 @@ apply_role_profile() {
   fi
 
   echo "Applied role profile '${ROLE_PROFILE}'."
+}
+
+apply_role_git_identity() {
+  if [ -z "${ROLE_GIT_IDENTITY_NAME:-}" ] || [ -z "${ROLE_GIT_IDENTITY_EMAIL:-}" ]; then
+    echo "Warning: role git identity is not fully configured (ROLE_GIT_IDENTITY_NAME/ROLE_GIT_IDENTITY_EMAIL); skipping global git identity setup." >&2
+    return
+  fi
+
+  if ! command -v git >/dev/null 2>&1; then
+    echo "Warning: git is not available; skipping global git identity setup." >&2
+    return
+  fi
+
+  git config --global user.name "${ROLE_GIT_IDENTITY_NAME}"
+  git config --global user.email "${ROLE_GIT_IDENTITY_EMAIL}"
+
+  echo "Applied global git identity '${ROLE_GIT_IDENTITY_NAME} <${ROLE_GIT_IDENTITY_EMAIL}>'."
 }
 
 render_runtime_role_instructions() {
@@ -370,6 +395,7 @@ if [ ! -f "$TARGET_CONFIG" ]; then
 fi
 
 apply_role_profile
+apply_role_git_identity
 write_runtime_github_app_auth_metadata
 
 if [ "${ROLE_GITHUB_AUTH_MODE:-}" = "app" ]; then
