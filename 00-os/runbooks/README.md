@@ -12,6 +12,21 @@ Runbooks provide step-by-step procedures for:
 
 ## Available Runbooks
 
+### [Role Workstation Bootstrap](./role-workstation-bootstrap.md)
+
+**When to use:** Understanding workstation container startup behavior, troubleshooting VS Code command approval prompts, or debugging role configuration issues
+
+**Scope:** All role workstation containers (local builds and GHCR published images)
+
+**Key processes:**
+- Automated bootstrap sequence and what gets seeded at startup
+- VS Code machine settings for persistent command auto-approval
+- Role GitHub App authentication setup and validation
+- Runtime instruction generation and AGENTS.md canonical contract
+- Common troubleshooting procedures and override mechanisms
+
+**Related scripts:** `.devcontainer-workstation/scripts/init-workstation.sh`, `setup-role-github-app-auth.sh`, `remint-role-github-app-auth.sh`
+
 ### [GitHub App Bootstrap Validation](./github-app-bootstrap-validation.md)
 
 **When to use:** New role onboarding or debugging role agent authentication failures
