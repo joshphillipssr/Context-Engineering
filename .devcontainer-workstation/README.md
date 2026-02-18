@@ -196,6 +196,36 @@ Typical issue-first usage:
 gh issue develop <ISSUE_NUMBER> --checkout
 ```
 
+## Git Identity Configuration
+
+Role workstations set global Git identity automatically during container startup.
+The default identity is role-attributed and uses the role bot account format (for example, `a-implementationspecialist[bot]`).
+
+Source of truth:
+
+- `00-os/role-registry.yml` (`roles[].git_identity`)
+
+Runtime variables used by startup:
+
+- `ROLE_GIT_IDENTITY_NAME`
+- `ROLE_GIT_IDENTITY_EMAIL`
+
+Verify current global identity inside the container:
+
+```bash
+git config --global user.name
+git config --global user.email
+```
+
+Optional override for intentional human-authored commits:
+
+```bash
+git config --global user.name "<your name>"
+git config --global user.email "<your email>"
+```
+
+You can restore role-attributed defaults by restarting the role workstation container.
+
 Use this only if you want a full reset of persisted container data:
 
 ```bash
