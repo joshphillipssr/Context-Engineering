@@ -1,5 +1,7 @@
 # References
 
-Store minimal reference material required for daily role work.
+Store reference materials for daily role work (general and role-specific).
 
-Keep this section short and role-specific. Link to external sources only when necessary.
+General references should be prefixed with `general-`.
+
+Keep references short and focused; link to external sources only when necessary.

@@ -1,6 +1,6 @@
 # SOPs (Standard Operating Procedures)
 
-Store role-specific, repeatable procedures here.
+Store repeatable procedures here (general and role-specific).
 
 Each SOP should include:
 - Purpose and trigger
@@ -8,3 +8,5 @@ Each SOP should include:
 - Step-by-step procedure
 - Outputs and completion criteria
 - Escalation conditions
+
+General SOPs should be prefixed with `general-`.

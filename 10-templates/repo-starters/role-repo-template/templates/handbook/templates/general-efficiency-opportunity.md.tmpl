@@ -1,0 +1,106 @@
+# Issue Template: Efficiency-Opportunity
+
+**Category:** Agent Feedback  
+**Used by:** All roles during post-task reflection  
+**Status:** Template for issues filed in `{{REPO_NAME}}`
+
+---
+
+## Title Format
+
+```
+[EFFICIENCY] <blocker-type>: <brief-description> [<severity>]
+```
+
+**Example:** `[EFFICIENCY] Missing tool: GitHub CLI search cross-repo [HIGH]`
+
+---
+
+## Issue Body Template
+
+### Context
+
+_Provide the work context where this friction was discovered:_
+- Original task or issue: [Link]
+- Session or PR: [Link]
+- Step or workflow where friction occurred: [Describe]
+
+### Blocker Type
+
+_Select one:_
+- [ ] Missing tool / CLI feature
+- [ ] Workflow misalignment (steps unclear, sequence wrong)
+- [ ] Information gap (doc missing / unclear)
+- [ ] Tool/API limitation (capabilities insufficient)
+- [ ] Workaround required (standard procedure has exception)
+- [ ] Other: _______________
+
+### Severity
+
+_Impact on role execution:_
+- [ ] **CRITICAL:** Blocks task completion; no workaround available
+- [ ] **HIGH:** Adds significant time/effort; workaround exists but is manual/complex
+- [ ] **MEDIUM:** Adds some friction but task completes; minor workaround or delay
+- [ ] **LOW:** Nice-to-have improvement; minimal impact on execution
+
+### Impact
+
+_Quantify the efficiency loss:_
+- Estimated time lost per occurrence: _____ min
+- Frequency (est. per sprint/month): _____ times
+- Cross-role applicability: [ ] Single role | [ ] Multiple roles | [ ] All roles
+
+### Workaround Used
+
+_Describe the workaround or manual process:_
+```
+[Steps taken to work around the friction]
+```
+
+### Suggested Fix
+
+_Propose a solution:_
+
+**Option 1:** [Description of fix]
+- Effort estimate: [time/complexity]
+- Owner/repo: [where to implement]
+
+**Option 2:** [Alternative]
+- Effort estimate: [time/complexity]
+- Owner/repo: [where to implement]
+
+### Evidence / Session Logs
+
+_If a similar issue already exists, add new evidence:_
+- Previous occurrence: [Link to existing issue]
+- New evidence: [Brief description of this instance]
+
+---
+
+## Labels
+
+**Required:**
+- `efficiency-opportunity`
+- `agent-feedback`
+
+**Optional:**
+- `missing-tool`
+- `documentation`
+- `workflow`
+- `cross-role`
+
+---
+
+## Completion Checklist
+
+- [ ] Context and blocker type clearly described
+- [ ] Impact quantified (time, frequency, scope)
+- [ ] Workaround documented
+- [ ] Suggested fix is actionable
+- [ ] Labels applied
+- [ ] If duplicate, linked to original and new evidence added
+
+---
+
+**Template Version:** 1.0  
+**Last Updated:** {{GENERATED_DATE}}
