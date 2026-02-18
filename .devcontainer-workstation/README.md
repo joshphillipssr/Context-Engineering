@@ -307,15 +307,26 @@ In addition, it generates adapter files at:
 - `/workspace/instructions/copilot-instructions.md`
 - `/workspace/instructions/role-github-app-auth.env` (role app metadata for deterministic re-mint helper)
 
-Instruction source resolution order:
+Default runtime behavior is fail-closed:
 
-1. role repo `AGENTS.md` (`<workspace-role-repo>/AGENTS.md`)
-2. image-baked compiled role instructions (`/etc/codex/runtime-role-instructions/<role>.md`)
-3. image-baked fallback sources (`/etc/codex/agent-instructions/`)
+- The role workspace repo `AGENTS.md` file is required: `<workspace-role-repo>/AGENTS.md`
+- If it is missing or unreadable, container init fails with a clear error
 
-Role-specific images bake `/etc/codex/runtime-role-instructions/<role>.md` from role-repo artifacts when available at build time, and fall back to repository-defined instruction sources when unavailable.
+Break-glass override:
 
-If the workspace repo directory does not exist at startup (for example, clone failure), the init script does not create it; runtime role instructions are still materialized from baked sources.
+- Set `ALLOW_FALLBACK_INSTRUCTIONS=true` to permit fallback instruction loading when role-repo `AGENTS.md` is unavailable.
+- With break-glass enabled, fallback resolution order is:
+  1. image-baked compiled role instructions (`/etc/codex/runtime-role-instructions/<role>.md`)
+  2. image-baked fallback sources (`/etc/codex/agent-instructions/`)
+
+Example break-glass startup:
+
+```bash
+export ALLOW_FALLBACK_INSTRUCTIONS=true
+bash .devcontainer-workstation/scripts/start-role-workstation.sh --role hraias --source ghcr --auth-mode app --pem-path ~/Downloads/a-hraiagentspecialist.2026-02-17.private-key.pem
+```
+
+Role-specific images still bake `/etc/codex/runtime-role-instructions/<role>.md` from role-repo artifacts when available at build time.
 
 For `Compliance Officer`, the runtime file includes the PR review protocol from `10-templates/compliance-officer-pr-review-brief.md` (or the image fallback copy when the workspace file is not present).
 

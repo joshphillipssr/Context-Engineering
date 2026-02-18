@@ -23,6 +23,7 @@ services:
       - WORKSPACE_REPO_URL=${IMPLEMENTATION_WORKSPACE_REPO_URL:-https://github.com/Josh-Phillips-LLC/context-engineering-role-implementation-specialist.git}
       - WORKSPACE_REPO_DIR=/workspace/Projects/${IMPLEMENTATION_WORKSPACE_REPO_DIR_NAME:-context-engineering-role-implementation-specialist}
       - AUTO_CLONE_WORKSPACE_REPO=${AUTO_CLONE_WORKSPACE_REPO:-true}
+      - ALLOW_FALLBACK_INSTRUCTIONS=${ALLOW_FALLBACK_INSTRUCTIONS:-false}
 
     cap_add:
       - ALL
@@ -56,6 +57,7 @@ services:
       - WORKSPACE_REPO_URL=${COMPLIANCE_WORKSPACE_REPO_URL:-https://github.com/Josh-Phillips-LLC/context-engineering-role-compliance-officer.git}
       - WORKSPACE_REPO_DIR=/workspace/Projects/${COMPLIANCE_WORKSPACE_REPO_DIR_NAME:-context-engineering-role-compliance-officer}
       - AUTO_CLONE_WORKSPACE_REPO=${AUTO_CLONE_WORKSPACE_REPO:-true}
+      - ALLOW_FALLBACK_INSTRUCTIONS=${ALLOW_FALLBACK_INSTRUCTIONS:-false}
 
     cap_add:
       - ALL
@@ -89,6 +91,7 @@ services:
       - WORKSPACE_REPO_URL=${SYSTEMS_ARCHITECT_WORKSPACE_REPO_URL:-https://github.com/Josh-Phillips-LLC/context-engineering-role-systems-architect.git}
       - WORKSPACE_REPO_DIR=/workspace/Projects/${SYSTEMS_ARCHITECT_WORKSPACE_REPO_DIR_NAME:-context-engineering-role-systems-architect}
       - AUTO_CLONE_WORKSPACE_REPO=${AUTO_CLONE_WORKSPACE_REPO:-true}
+      - ALLOW_FALLBACK_INSTRUCTIONS=${ALLOW_FALLBACK_INSTRUCTIONS:-false}
 
     cap_add:
       - ALL
@@ -122,6 +125,7 @@ services:
       - WORKSPACE_REPO_URL=${HR_AI_AGENT_SPECIALIST_WORKSPACE_REPO_URL:-https://github.com/Josh-Phillips-LLC/context-engineering-role-hr-ai-agent-specialist.git}
       - WORKSPACE_REPO_DIR=/workspace/Projects/${HR_AI_AGENT_SPECIALIST_WORKSPACE_REPO_DIR_NAME:-context-engineering-role-hr-ai-agent-specialist}
       - AUTO_CLONE_WORKSPACE_REPO=${AUTO_CLONE_WORKSPACE_REPO:-true}
+      - ALLOW_FALLBACK_INSTRUCTIONS=${ALLOW_FALLBACK_INSTRUCTIONS:-false}
 
     cap_add:
       - ALL

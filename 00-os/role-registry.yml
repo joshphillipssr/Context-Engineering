@@ -171,6 +171,7 @@ templates:
         - WORKSPACE_REPO_URL=${{ '{' + github_app.env_prefix + '_WORKSPACE_REPO_URL:-https://github.com/Josh-Phillips-LLC/' + repo_name + '.git}' }}
         - WORKSPACE_REPO_DIR=/workspace/Projects/${{ '{' + github_app.env_prefix + '_WORKSPACE_REPO_DIR_NAME:-' + repo_name + '}' }}
         - AUTO_CLONE_WORKSPACE_REPO=${AUTO_CLONE_WORKSPACE_REPO:-true}
+        - ALLOW_FALLBACK_INSTRUCTIONS=${ALLOW_FALLBACK_INSTRUCTIONS:-false}
   
       # Testing-mode autonomy
       cap_add:
