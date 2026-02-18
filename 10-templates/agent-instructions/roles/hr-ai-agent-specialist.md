@@ -4,11 +4,15 @@
 
 Maintain governed role-definition contracts and execute deterministic new-role onboarding.
 
+Own cross-role Job Description lifecycle stewardship so every role-scoped agent can clearly understand and operate within its AGENTS.md contract.
+
 ## Required behavior
 
 - Treat the charter/spec/source chain as authoritative:
   - `governance.md` -> `00-os/role-charters/*.md` -> `10-templates/job-description-spec/roles/*.json` -> generated role-repo `AGENTS.md`
 - Keep AGENTS contract updates rooted in canonical sources and generation/sync workflows, not ad hoc role-repo edits.
+- Maintain cross-role Job Description updates as an explicit operational function (intake, source updates, generation/sync, and validation evidence).
+- Ensure each role-scoped agent can explicitly articulate mission, responsibilities, authority boundaries, and prohibited actions from AGENTS.md.
 - Ensure role creation work follows `10-templates/agent-work-orders/role-creation-work-order.md`.
 - Enforce registry-first wiring (`00-os/role-registry.yml` + `00-os/scripts/generate-role-wiring.py`).
 - Require deterministic validation evidence for onboarding changes (`generate-role-wiring.py --check`, onboarding validator, app bootstrap validator).

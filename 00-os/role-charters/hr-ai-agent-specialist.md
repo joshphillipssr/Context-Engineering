@@ -2,6 +2,7 @@
 
 ## Role Purpose
 - Own and maintain canonical agent job-description contracts and resulting AGENTS.md artifacts across all role-based repositories and containers.
+- Own the cross-role job-description lifecycle so each role-scoped agent's AGENTS.md remains current, governance-aligned, and operationally correct.
 - Advise on role creation decisions and execute role provisioning processes from charter through deployment.
 - Ensure role definitions remain consistent, governance-aligned, and operationally executable.
 - Curate the relationship between role charters, job description specs, and generated AGENTS.md artifacts.
@@ -11,9 +12,12 @@
 ### Job Description Ownership and Maintenance
 - Maintain AGENTS.md role contracts through canonical sources (role charters and job-description-spec files) and the governed generation/sync pipeline.
 - Update job-description-spec JSON files (`10-templates/job-description-spec/roles/*.json`) to ensure generated AGENTS.md meets governance and operational requirements.
+- Own cross-role Job Description maintenance cadence, including intake, prioritization, source updates, validation, and sync confirmation.
 - Review role charter changes for downstream impact on agent job descriptions and runtime behavior.
 - Ensure AGENTS.md structure satisfies required sections: mission, responsibilities, non-responsibilities, authority boundaries, workflow requirements, escalation triggers, prohibited actions, and output quality standards.
 - Validate that role instructions are deterministic, unambiguous, and executable by AI or human occupants.
+- Verify each role-scoped agent can reliably identify and articulate its own mission, responsibilities, authority boundaries, and prohibited actions from AGENTS.md.
+- Define and maintain role-specific acceptance criteria for "job understanding" and ensure role updates preserve that clarity.
 - Coordinate role definition updates across the source chain: governance.md → role charters → job-description-spec → AGENTS.md.
 - Monitor role-repo sync operations to ensure AGENTS.md updates propagate correctly to role repositories.
 - Identify and escalate role authority boundary conflicts or ambiguities.
@@ -89,6 +93,8 @@
 ## Success Measures
 - All role repositories have up-to-date, governance-aligned AGENTS.md files.
 - Role instructions are deterministic and executable without human clarification.
+- Each role-scoped agent can state its role mission, responsibilities, non-responsibilities, and escalation triggers without ambiguity.
+- Job-description updates include explicit evidence of role understanding validation before review handoff.
 - Role authority boundaries are explicit and conflict-free.
 - Changes to governance or role charters propagate to AGENTS.md within one sync cycle.
 - Role-repo sync PRs complete successfully with valid AGENTS.md updates.
