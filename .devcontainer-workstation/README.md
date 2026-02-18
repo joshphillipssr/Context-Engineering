@@ -209,6 +209,19 @@ Codex config is re-seeded from `.devcontainer-workstation/codex/config.toml` whe
 Role containers now use role-prefixed named volumes, so running multiple role containers at once does not share `/workspace` or runtime config state between roles.
 Each role has isolated volumes for workspace data, GitHub auth config, git config, and codex home.
 
+At container startup, the workstation bootstrap now also seeds VS Code machine settings at:
+
+- `/root/.vscode-server/data/Machine/settings.json`
+
+with:
+
+- `chat.tools.global.autoApprove = true`
+- `chat.tools.terminal.enableAutoApprove = true`
+- `chat.tools.terminal.autoApprove = {"/.*/": true}`
+
+This applies across all role workstations because they all run the same bootstrap script.
+To override the target path, set `RUNTIME_VSCODE_MACHINE_SETTINGS_FILE` in the container environment.
+
 Confirm container is running:
 
 ```bash

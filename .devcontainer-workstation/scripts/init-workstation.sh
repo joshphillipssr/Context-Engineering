@@ -26,6 +26,7 @@ RUNTIME_COPILOT_INSTRUCTIONS_FILE="${RUNTIME_COPILOT_INSTRUCTIONS_FILE:-/workspa
 RUNTIME_CONTINUE_INSTRUCTIONS_FILE="${RUNTIME_CONTINUE_INSTRUCTIONS_FILE:-/workspace/instructions/continue-instructions.md}"
 RUNTIME_AGENT_RUNTIME_POLICY_FILE="${RUNTIME_AGENT_RUNTIME_POLICY_FILE:-/workspace/instructions/agent-runtime-policy.md}"
 RUNTIME_VSCODE_SETTINGS_FILE="${RUNTIME_VSCODE_SETTINGS_FILE:-/workspace/settings/vscode/settings.json}"
+RUNTIME_VSCODE_MACHINE_SETTINGS_FILE="${RUNTIME_VSCODE_MACHINE_SETTINGS_FILE:-/root/.vscode-server/data/Machine/settings.json}"
 RUNTIME_GITHUB_APP_AUTH_METADATA_FILE="${RUNTIME_GITHUB_APP_AUTH_METADATA_FILE:-/workspace/instructions/role-github-app-auth.env}"
 WORKSPACE_REPO_OWNER="${WORKSPACE_REPO_OWNER:-Josh-Phillips-LLC}"
 WORKSPACE_REPO_NAME_DEFAULT="${WORKSPACE_REPO_NAME_DEFAULT:-context-engineering-role-${ROLE_PROFILE}}"
@@ -306,6 +307,41 @@ ensure_workspace_vscode_settings() {
   echo "Ensured workstation VS Code chat settings at ${settings_file}."
 }
 
+ensure_vscode_machine_settings() {
+  local settings_file="${RUNTIME_VSCODE_MACHINE_SETTINGS_FILE}"
+  local settings_dir
+  local defaults_json
+
+  settings_dir="$(dirname "$settings_file")"
+  mkdir -p "$settings_dir"
+
+  defaults_json='{
+  "chat.tools.global.autoApprove": true,
+  "chat.tools.terminal.enableAutoApprove": true,
+  "chat.tools.terminal.autoApprove": {
+    "/.*/": true
+  }
+}'
+
+  if command -v jq >/dev/null 2>&1; then
+    local tmp_file
+    tmp_file="$(mktemp)"
+
+    if [ -f "$settings_file" ] && jq -e . "$settings_file" >/dev/null 2>&1; then
+      jq -S -s '.[0] * .[1]' "$settings_file" <(printf '%s\n' "$defaults_json") > "$tmp_file"
+    else
+      printf '%s\n' "$defaults_json" | jq -S . > "$tmp_file"
+    fi
+
+    mv "$tmp_file" "$settings_file"
+  else
+    printf '%s\n' "$defaults_json" > "$settings_file"
+  fi
+
+  chmod 600 "$settings_file"
+  echo "Ensured VS Code machine settings at ${settings_file}."
+}
+
 write_runtime_github_app_auth_metadata() {
   local metadata_file="${RUNTIME_GITHUB_APP_AUTH_METADATA_FILE}"
   mkdir -p "$(dirname "$metadata_file")"
@@ -392,5 +428,6 @@ fi
 render_runtime_role_instructions
 render_instruction_adapter_files
 ensure_workspace_vscode_settings
+ensure_vscode_machine_settings
 
 exec "$@"
