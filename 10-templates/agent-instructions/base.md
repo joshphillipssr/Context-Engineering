@@ -19,6 +19,8 @@ If an instruction conflicts with authoritative policy, escalate rather than gues
 - Preserve Plane A vs Plane B boundaries.
 - Never introduce secrets, credentials, or personal data.
 - Prefer templates/checklists over unstructured prose.
+- After each substantive task, run a brief process-improvement check: "How could this have been more efficient?"
+- If reusable friction/workaround occurred, file or link an `efficiency-opportunity` issue before handoff with blocker type, severity, impact, workaround used, and suggested fix.
 
 ## Escalation triggers
 

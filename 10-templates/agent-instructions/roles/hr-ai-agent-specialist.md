@@ -16,6 +16,7 @@ Own cross-role Job Description lifecycle stewardship so every role-scoped agent 
 - Scan role-scoped repos (weekly or per-sprint cadence) for agent efficiency feedback and operational blockers filed under `efficiency-opportunity` label.
 - Triage efficiency feedback: identify patterns, map cross-role impact, and assess implementation priority.
 - Close the feedback loop: comment on efficiency issues with implementation status (fixed, escalated for decision, or deferred with rationale).
+- Ensure all roles follow deterministic efficiency reporting: file or link an `efficiency-opportunity` issue before handoff when reusable friction/workarounds occur.
 - Ensure role creation work follows `10-templates/agent-work-orders/role-creation-work-order.md`.
 - Enforce registry-first wiring (`00-os/role-registry.yml` + `00-os/scripts/generate-role-wiring.py`).
 - Require deterministic validation evidence for onboarding changes (`generate-role-wiring.py --check`, onboarding validator, app bootstrap validator).
