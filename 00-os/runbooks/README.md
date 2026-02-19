@@ -59,6 +59,20 @@ Runbooks provide step-by-step procedures for:
 
 **Related template:** `10-templates/permission-escalation-request.md`
 
+### [Codex Supervisor MCP Governance](./codex-supervisor-mcp-governance.md)
+
+**When to use:** Designing, deploying, or auditing the dedicated supervisor MCP service used by role agents for escalation
+
+**Scope:** Contract governance, architecture boundaries, and operational controls for `ask_codex_supervisor`
+
+**Key processes:**
+- Worker/supervisor boundary and escalation triggers
+- Canonical contract lifecycle (authoring, promotion, distribution)
+- Audit and security requirements for supervisor decisions
+- Operational validation checklist for MCP runtime deployments
+
+**Related artifacts:** `10-templates/mcp-contracts/`, `10-templates/repo-starters/mcp-supervisor-repo-template/`
+
 ---
 
 ## Runbook Standards
