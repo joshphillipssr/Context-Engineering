@@ -5,5 +5,10 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    volumes:
+      - codex-supervisor-codex-state:/root/.codex
     ports:
       - "${SUPERVISOR_BIND_HOST:-127.0.0.1}:${SUPERVISOR_BIND_PORT:-8787}:${SUPERVISOR_BIND_PORT:-8787}"
+
+volumes:
+  codex-supervisor-codex-state:

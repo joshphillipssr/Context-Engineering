@@ -8,7 +8,8 @@ This starter scaffolds a dedicated, containerized MCP supervisor repository gove
 - Keep tool contract schemas canonical and synced from Context-Engineering.
 - Establish a baseline container package layout for local and CI publishing.
 - Default generated runtime to long-lived network transport for container use.
-- Include explicit Codex API auth/runtime controls while retaining fail-safe behavior.
+- Default generated backend to local Codex CLI with API mode optional.
+- Include explicit provider/auth/runtime controls while retaining fail-safe behavior.
 
 ## Output Shape
 
@@ -60,8 +61,12 @@ Optional args:
   - `SUPERVISOR_BIND_HOST` / `SUPERVISOR_BIND_PORT`
   - `SUPERVISOR_TRANSPORT` (default `streamable-http`)
   - `SUPERVISOR_ENABLE_CODEX_PROXY`
+  - `SUPERVISOR_CODEX_PROVIDER` (default `cli`)
+  - `SUPERVISOR_CODEX_CLI_BIN` / `SUPERVISOR_CODEX_CLI_TIMEOUT_SECONDS`
   - `CODEX_API_KEY` / `CODEX_MODEL`
   - `CODEX_API_BASE_URL` / `CODEX_API_RESPONSES_PATH`
   - `CODEX_API_TIMEOUT_SECONDS` / `CODEX_MAX_OUTPUT_TOKENS`
-- Generated starter calls Codex API only when proxy mode is enabled and key is configured.
-- Any API/parsing/validation failure returns schema-valid fail-safe `pause_for_human`.
+- Generated image installs `codex` CLI and persists auth state at `/root/.codex` via compose volume.
+- Generated starter calls Codex CLI by default when proxy mode is enabled.
+- API mode remains optional behind explicit provider selection.
+- Any provider/parsing/validation failure returns schema-valid fail-safe `pause_for_human`.
