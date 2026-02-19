@@ -308,6 +308,28 @@ def _error_label(exc: Exception) -> str:
     return exc.__class__.__name__.lower()
 
 
+def _validation_fail_safe_response(exc: Exception) -> dict[str, Any]:
+    label = _error_label(exc)
+    return _starter_pause_response(
+        rationale=(
+            "Starter response: supervisor response mapping failed schema "
+            f"validation ({label}). Escalating to human operator."
+        ),
+        next_actions=[
+            "Verify response contract mapping logic for governed schema fields.",
+            "Capture API output and compare against response schema requirements.",
+            "Retry after correcting mapping/validation behavior.",
+        ],
+        confidence=0.1,
+        audit_tags=[
+            "starter",
+            "response-validation-failed",
+            f"validation-error:{label}",
+            "manual-review-required",
+        ],
+    )
+
+
 def _build_auth_scaffold_response(payload: dict[str, Any]) -> dict[str, Any]:
     if not SUPERVISOR_ENABLE_CODEX_PROXY:
         return _starter_pause_response(
@@ -384,8 +406,13 @@ def ask_codex_supervisor(payload: dict[str, Any]) -> dict[str, Any]:
 
     response = _build_auth_scaffold_response(payload)
 
-    RESPONSE_VALIDATOR.validate(response)
-    return response
+    try:
+        RESPONSE_VALIDATOR.validate(response)
+        return response
+    except Exception as exc:
+        fail_safe_response = _validation_fail_safe_response(exc)
+        RESPONSE_VALIDATOR.validate(fail_safe_response)
+        return fail_safe_response
 
 
 if __name__ == "__main__":
