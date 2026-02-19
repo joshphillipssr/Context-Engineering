@@ -114,7 +114,7 @@ if [ -d "$OUTPUT_DIR" ] && [ -n "$(ls -A "$OUTPUT_DIR" 2>/dev/null || true)" ] &
   exit 1
 fi
 
-mkdir -p "$OUTPUT_DIR/.github" "$OUTPUT_DIR/.vscode"
+mkdir -p "$OUTPUT_DIR/.github" "$OUTPUT_DIR/.vscode" "$OUTPUT_DIR/scripts"
 mkdir -p "$OUTPUT_DIR/handbook/sops" "$OUTPUT_DIR/handbook/runbooks" "$OUTPUT_DIR/handbook/templates" "$OUTPUT_DIR/handbook/references"
 
 GENERATED_AT_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
@@ -167,6 +167,12 @@ render_template "${TEMPLATE_ROOT}/templates/handbook/runbooks/README.md.tmpl" "$
 render_template "${TEMPLATE_ROOT}/templates/handbook/templates/README.md.tmpl" "${OUTPUT_DIR}/handbook/templates/README.md"
 render_template "${TEMPLATE_ROOT}/templates/handbook/templates/general-efficiency-opportunity.md.tmpl" "${OUTPUT_DIR}/handbook/templates/general-efficiency-opportunity.md"
 render_template "${TEMPLATE_ROOT}/templates/handbook/references/README.md.tmpl" "${OUTPUT_DIR}/handbook/references/README.md"
+
+if [ "$ROLE_SLUG" = "compliance-officer" ]; then
+  render_template "${TEMPLATE_ROOT}/templates/scripts/co-pr-review.sh.tmpl" "${OUTPUT_DIR}/scripts/co-pr-review.sh"
+  chmod +x "${OUTPUT_DIR}/scripts/co-pr-review.sh"
+  render_template "${TEMPLATE_ROOT}/templates/handbook/runbooks/compliance-pr-review-wrapper.md.tmpl" "${OUTPUT_DIR}/handbook/runbooks/compliance-pr-review-wrapper.md"
+fi
 
 echo "Generated role repo scaffold: ${OUTPUT_DIR}"
 echo "Role: ${ROLE_NAME} (${ROLE_SLUG})"
