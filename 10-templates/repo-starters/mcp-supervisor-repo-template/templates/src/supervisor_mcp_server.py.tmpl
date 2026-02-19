@@ -13,6 +13,8 @@ Behavior in this starter is intentionally conservative:
 from __future__ import annotations
 
 import json
+import os
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +26,10 @@ CONTRACT_DIR = BASE_DIR / "contracts"
 
 REQUEST_SCHEMA_PATH = CONTRACT_DIR / "ask-codex-supervisor.request.schema.json"
 RESPONSE_SCHEMA_PATH = CONTRACT_DIR / "ask-codex-supervisor.response.schema.json"
+DEFAULT_BIND_HOST = "127.0.0.1"
+DEFAULT_BIND_PORT = 8787
+DEFAULT_TRANSPORT = "streamable-http"
+ALLOWED_TRANSPORTS = {"stdio", "sse", "streamable-http"}
 
 
 def _load_schema(path: Path) -> dict[str, Any]:
@@ -31,10 +37,138 @@ def _load_schema(path: Path) -> dict[str, Any]:
         return json.load(handle)
 
 
+def _env_bool(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if raw is None or not raw.strip():
+        return default
+    try:
+        parsed = int(raw)
+    except ValueError:
+        print(f"Invalid {name}={raw!r}; using default {default}.", file=sys.stderr)
+        return default
+    if parsed <= 0:
+        print(f"Invalid {name}={raw!r}; using default {default}.", file=sys.stderr)
+        return default
+    return parsed
+
+
+def _resolve_transport(raw_transport: str) -> str:
+    normalized = raw_transport.strip().lower()
+    if normalized in ALLOWED_TRANSPORTS:
+        return normalized
+    print(
+        (
+            f"Invalid SUPERVISOR_TRANSPORT={raw_transport!r}; "
+            f"defaulting to {DEFAULT_TRANSPORT}."
+        ),
+        file=sys.stderr,
+    )
+    return DEFAULT_TRANSPORT
+
+
 REQUEST_VALIDATOR = Draft202012Validator(_load_schema(REQUEST_SCHEMA_PATH))
 RESPONSE_VALIDATOR = Draft202012Validator(_load_schema(RESPONSE_SCHEMA_PATH))
+SUPERVISOR_BIND_HOST = os.getenv("SUPERVISOR_BIND_HOST", DEFAULT_BIND_HOST).strip() or DEFAULT_BIND_HOST
+SUPERVISOR_BIND_PORT = _env_int("SUPERVISOR_BIND_PORT", DEFAULT_BIND_PORT)
+SUPERVISOR_TRANSPORT = _resolve_transport(os.getenv("SUPERVISOR_TRANSPORT", DEFAULT_TRANSPORT))
+SUPERVISOR_ENABLE_CODEX_PROXY = _env_bool("SUPERVISOR_ENABLE_CODEX_PROXY", default=False)
+CODEX_API_KEY = os.getenv("CODEX_API_KEY", "").strip()
+CODEX_MODEL = os.getenv("CODEX_MODEL", "gpt-5").strip() or "gpt-5"
 
-mcp = FastMCP("codex-supervisor")
+mcp = FastMCP(
+    "codex-supervisor",
+    host=SUPERVISOR_BIND_HOST,
+    port=SUPERVISOR_BIND_PORT,
+)
+
+
+def _starter_pause_response(
+    *,
+    rationale: str,
+    next_actions: list[str],
+    confidence: float,
+    audit_tags: list[str],
+) -> dict[str, Any]:
+    return {
+        "decision": "pause_for_human",
+        "rationale": rationale,
+        "next_actions": next_actions,
+        "confidence": confidence,
+        "safety_checks": [
+            "Authorized scope present",
+            "Escalation reason explicit",
+            "No out-of-scope action requested",
+        ],
+        "audit_tags": audit_tags,
+    }
+
+
+def _build_auth_scaffold_response() -> dict[str, Any]:
+    if not SUPERVISOR_ENABLE_CODEX_PROXY:
+        return _starter_pause_response(
+            rationale=(
+                "Starter response: Codex proxy is disabled. "
+                "Escalating to human operator."
+            ),
+            next_actions=[
+                "Verify authorized scope for the requested operation.",
+                "Attach tool output and retry with full evidence summary.",
+                "Set SUPERVISOR_ENABLE_CODEX_PROXY=true to enable auth scaffolding.",
+            ],
+            confidence=0.25,
+            audit_tags=[
+                "starter",
+                "proxy-disabled",
+                "manual-review-required",
+            ],
+        )
+
+    if not CODEX_API_KEY:
+        return _starter_pause_response(
+            rationale=(
+                "Starter response: Codex proxy is enabled but CODEX_API_KEY is "
+                "not configured. Escalating to human operator."
+            ),
+            next_actions=[
+                "Set CODEX_API_KEY in .env before retrying escalation.",
+                "Confirm CODEX_MODEL matches the intended supervisor model.",
+                "Re-run with the same payload after auth is configured.",
+            ],
+            confidence=0.15,
+            audit_tags=[
+                "starter",
+                "proxy-enabled",
+                "auth-missing",
+                "manual-review-required",
+            ],
+        )
+
+    return _starter_pause_response(
+        rationale=(
+            "Starter response: Codex proxy auth is configured, but external API "
+            f"decisioning for model {CODEX_MODEL} is not implemented yet. "
+            "Escalating to human operator."
+        ),
+        next_actions=[
+            "Implement external Codex API request/response mapping.",
+            "Validate mapped response against response schema before returning.",
+            "Keep manual review in place until integration tests pass.",
+        ],
+        confidence=0.35,
+        audit_tags=[
+            "starter",
+            "proxy-enabled",
+            "auth-configured",
+            "manual-review-required",
+        ],
+    )
 
 
 @mcp.tool()
@@ -46,32 +180,21 @@ def ask_codex_supervisor(payload: dict[str, Any]) -> dict[str, Any]:
 
     REQUEST_VALIDATOR.validate(payload)
 
-    response: dict[str, Any] = {
-        "decision": "pause_for_human",
-        "rationale": (
-            "Starter response: Codex proxy integration is not configured yet. "
-            "Escalating to human operator."
-        ),
-        "next_actions": [
-            "Verify authorized scope for the requested operation.",
-            "Attach tool output and retry with full evidence summary.",
-            "Configure Codex API proxy in this MCP service."
-        ],
-        "confidence": 0.25,
-        "safety_checks": [
-            "Authorized scope present",
-            "Escalation reason explicit",
-            "No out-of-scope action requested"
-        ],
-        "audit_tags": [
-            "starter",
-            "manual-review-required"
-        ]
-    }
+    response = _build_auth_scaffold_response()
 
     RESPONSE_VALIDATOR.validate(response)
     return response
 
 
 if __name__ == "__main__":
-    mcp.run()
+    print(
+        (
+            "Starting codex-supervisor with "
+            f"transport={SUPERVISOR_TRANSPORT} "
+            f"host={SUPERVISOR_BIND_HOST} "
+            f"port={SUPERVISOR_BIND_PORT} "
+            f"proxy_enabled={SUPERVISOR_ENABLE_CODEX_PROXY}"
+        ),
+        flush=True,
+    )
+    mcp.run(transport=SUPERVISOR_TRANSPORT)

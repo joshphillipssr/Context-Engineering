@@ -7,6 +7,8 @@ This starter scaffolds a dedicated, containerized MCP supervisor repository gove
 - Provide a reusable repo scaffold for `ask_codex_supervisor` escalation.
 - Keep tool contract schemas canonical and synced from Context-Engineering.
 - Establish a baseline container package layout for local and CI publishing.
+- Default generated runtime to long-lived network transport for container use.
+- Include explicit Codex auth-state scaffolding while retaining fail-safe decisions.
 
 ## Output Shape
 
@@ -51,3 +53,13 @@ Optional args:
   --repo-name codex-supervisor-mcp \
   --output-dir /tmp/codex-supervisor-mcp
 ```
+
+## Generated Runtime Notes
+
+- Generated `.env.example` includes:
+  - `SUPERVISOR_BIND_HOST` / `SUPERVISOR_BIND_PORT`
+  - `SUPERVISOR_TRANSPORT` (default `streamable-http`)
+  - `SUPERVISOR_ENABLE_CODEX_PROXY`
+  - `CODEX_API_KEY` / `CODEX_MODEL`
+- Generated starter returns schema-valid fail-safe decisions (`pause_for_human`) in all scaffold states.
+- External Codex API decisioning is intentionally a follow-up implementation.

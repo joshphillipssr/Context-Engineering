@@ -39,8 +39,22 @@ python src/supervisor_mcp_server.py
 
 ## Environment
 
-- `CODEX_API_KEY`: API key used by future Codex proxy integration
+- `SUPERVISOR_BIND_HOST`: Bind host for MCP runtime (default: `127.0.0.1`)
+- `SUPERVISOR_BIND_PORT`: Bind port for MCP runtime (default: `8787`)
+- `SUPERVISOR_TRANSPORT`: MCP transport (`stdio`, `sse`, `streamable-http`; default: `streamable-http`)
+- `SUPERVISOR_ENABLE_CODEX_PROXY`: Enables Codex auth-state scaffolding (`true`/`false`, default: `false`)
+- `CODEX_API_KEY`: Codex API key used by auth scaffolding when proxy mode is enabled
 - `CODEX_MODEL`: Codex model identifier (default: `gpt-5`)
+
+## Current Starter Behavior
+
+- Request and response payloads are schema-validated.
+- Starter responses are fail-safe and always return `decision: pause_for_human`.
+- Auth-state handling is explicit:
+  - proxy disabled
+  - proxy enabled + API key missing
+  - proxy enabled + API key present
+- Full external Codex API decisioning is intentionally not implemented in this starter.
 
 ## Governance
 
