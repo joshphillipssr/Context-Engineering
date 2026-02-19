@@ -8,7 +8,7 @@ This starter scaffolds a dedicated, containerized MCP supervisor repository gove
 - Keep tool contract schemas canonical and synced from Context-Engineering.
 - Establish a baseline container package layout for local and CI publishing.
 - Default generated runtime to long-lived network transport for container use.
-- Include explicit Codex auth-state scaffolding while retaining fail-safe decisions.
+- Include explicit Codex API auth/runtime controls while retaining fail-safe behavior.
 
 ## Output Shape
 
@@ -61,5 +61,7 @@ Optional args:
   - `SUPERVISOR_TRANSPORT` (default `streamable-http`)
   - `SUPERVISOR_ENABLE_CODEX_PROXY`
   - `CODEX_API_KEY` / `CODEX_MODEL`
-- Generated starter returns schema-valid fail-safe decisions (`pause_for_human`) in all scaffold states.
-- External Codex API decisioning is intentionally a follow-up implementation.
+  - `CODEX_API_BASE_URL` / `CODEX_API_RESPONSES_PATH`
+  - `CODEX_API_TIMEOUT_SECONDS` / `CODEX_MAX_OUTPUT_TOKENS`
+- Generated starter calls Codex API only when proxy mode is enabled and key is configured.
+- Any API/parsing/validation failure returns schema-valid fail-safe `pause_for_human`.
