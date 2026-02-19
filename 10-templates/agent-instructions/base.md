@@ -20,7 +20,10 @@ If an instruction conflicts with authoritative policy, escalate rather than gues
 - Never introduce secrets, credentials, or personal data.
 - Prefer templates/checklists over unstructured prose.
 - After each substantive task, run a brief process-improvement check: "How could this have been more efficient?"
-- If reusable friction/workaround occurred, file or link an `efficiency-opportunity` issue before handoff with blocker type, severity, impact, workaround used, and suggested fix.
+- Before handoff, reconcile the efficiency reflection against open `efficiency-opportunity` and `agent-feedback` issues in the current role repo.
+- If an equivalent open issue exists, append new evidence there; do not create duplicate issues.
+- If no equivalent open issue exists and reusable friction/workaround occurred, create a new `efficiency-opportunity` issue with blocker type, severity, impact, workaround used, and suggested fix, and apply labels `efficiency-opportunity` and `agent-feedback`.
+- Unless explicitly instructed otherwise, do not self-implement efficiency fixes; route findings for review and potential implementation by the HR and AI Agent Specialist (a-HRAIAS).
 
 ## Escalation triggers
 
