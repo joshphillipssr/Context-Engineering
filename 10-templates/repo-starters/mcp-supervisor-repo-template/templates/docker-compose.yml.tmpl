@@ -6,4 +6,4 @@ services:
     env_file:
       - .env
     ports:
-      - "127.0.0.1:8787:8787"
+      - "${SUPERVISOR_BIND_HOST:-127.0.0.1}:${SUPERVISOR_BIND_PORT:-8787}:${SUPERVISOR_BIND_PORT:-8787}"
