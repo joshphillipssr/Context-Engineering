@@ -42,8 +42,11 @@ python src/supervisor_mcp_server.py
 - `SUPERVISOR_BIND_HOST`: Bind host for MCP runtime (default: `127.0.0.1`)
 - `SUPERVISOR_BIND_PORT`: Bind port for MCP runtime (default: `8787`)
 - `SUPERVISOR_TRANSPORT`: MCP transport (`stdio`, `sse`, `streamable-http`; default: `streamable-http`)
-- `SUPERVISOR_ENABLE_CODEX_PROXY`: Enables Codex API proxy mode (`true`/`false`, default: `false`)
-- `CODEX_API_KEY`: Codex API key used for proxy calls when proxy mode is enabled
+- `SUPERVISOR_ENABLE_CODEX_PROXY`: Enables supervisor proxy mode (`true`/`false`, default: `false`)
+- `SUPERVISOR_CODEX_PROVIDER`: Supervisor backend provider (`cli` or `api`, default: `cli`)
+- `SUPERVISOR_CODEX_CLI_BIN`: CLI executable path/name (default: `codex`)
+- `SUPERVISOR_CODEX_CLI_TIMEOUT_SECONDS`: Timeout for `codex exec` calls (default: `90`)
+- `CODEX_API_KEY`: Codex API key used only when `SUPERVISOR_CODEX_PROVIDER=api`
 - `CODEX_MODEL`: Codex model identifier (default: `gpt-5`)
 - `CODEX_API_BASE_URL`: Codex/OpenAI API base URL (default: `https://api.openai.com/v1`)
 - `CODEX_API_RESPONSES_PATH`: API path for responses endpoint (default: `/responses`)
@@ -53,13 +56,24 @@ python src/supervisor_mcp_server.py
 ## Current Starter Behavior
 
 - Request and response payloads are schema-validated.
-- Proxy disabled or auth-missing responses are fail-safe (`decision: pause_for_human`).
-- Auth-state handling is explicit:
-  - proxy disabled
-  - proxy enabled + API key missing
-  - proxy enabled + API key present
-- In proxy-enabled/auth-configured mode, the starter calls the Codex API and expects JSON output matching the governed response schema.
-- Any API/network/parsing/validation failure returns a schema-valid fail-safe `pause_for_human` response.
+- Default backend is local Codex CLI (`SUPERVISOR_CODEX_PROVIDER=cli`).
+- Optional backend is direct API (`SUPERVISOR_CODEX_PROVIDER=api`).
+- Proxy disabled or provider/auth/runtime failures are fail-safe (`decision: pause_for_human`).
+- Any provider/network/parsing/validation failure returns a schema-valid fail-safe `pause_for_human` response.
+
+## Two-Container Runtime Pattern
+
+- Container 1 (worker agent, e.g. Cline local LLM) calls this MCP service.
+- Container 2 (this supervisor) executes `ask_codex_supervisor` via configured provider.
+- For CLI mode, authenticate Codex CLI inside this container:
+
+```bash
+docker exec -it codex-supervisor-mcp codex login --device-auth
+docker exec codex-supervisor-mcp codex login status
+```
+
+- Security default is loopback bind (`127.0.0.1`). For inter-container networking, explicitly set:
+  - `SUPERVISOR_BIND_HOST=0.0.0.0`
 
 ## Governance
 
