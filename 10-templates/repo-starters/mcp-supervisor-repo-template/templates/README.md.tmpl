@@ -42,19 +42,24 @@ python src/supervisor_mcp_server.py
 - `SUPERVISOR_BIND_HOST`: Bind host for MCP runtime (default: `127.0.0.1`)
 - `SUPERVISOR_BIND_PORT`: Bind port for MCP runtime (default: `8787`)
 - `SUPERVISOR_TRANSPORT`: MCP transport (`stdio`, `sse`, `streamable-http`; default: `streamable-http`)
-- `SUPERVISOR_ENABLE_CODEX_PROXY`: Enables Codex auth-state scaffolding (`true`/`false`, default: `false`)
-- `CODEX_API_KEY`: Codex API key used by auth scaffolding when proxy mode is enabled
+- `SUPERVISOR_ENABLE_CODEX_PROXY`: Enables Codex API proxy mode (`true`/`false`, default: `false`)
+- `CODEX_API_KEY`: Codex API key used for proxy calls when proxy mode is enabled
 - `CODEX_MODEL`: Codex model identifier (default: `gpt-5`)
+- `CODEX_API_BASE_URL`: Codex/OpenAI API base URL (default: `https://api.openai.com/v1`)
+- `CODEX_API_RESPONSES_PATH`: API path for responses endpoint (default: `/responses`)
+- `CODEX_API_TIMEOUT_SECONDS`: HTTP timeout for Codex API calls (default: `30`)
+- `CODEX_MAX_OUTPUT_TOKENS`: Max output tokens requested from Codex (default: `600`)
 
 ## Current Starter Behavior
 
 - Request and response payloads are schema-validated.
-- Starter responses are fail-safe and always return `decision: pause_for_human`.
+- Proxy disabled or auth-missing responses are fail-safe (`decision: pause_for_human`).
 - Auth-state handling is explicit:
   - proxy disabled
   - proxy enabled + API key missing
   - proxy enabled + API key present
-- Full external Codex API decisioning is intentionally not implemented in this starter.
+- In proxy-enabled/auth-configured mode, the starter calls the Codex API and expects JSON output matching the governed response schema.
+- Any API/network/parsing/validation failure returns a schema-valid fail-safe `pause_for_human` response.
 
 ## Governance
 

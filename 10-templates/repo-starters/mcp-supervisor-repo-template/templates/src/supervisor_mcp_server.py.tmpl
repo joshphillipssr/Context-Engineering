@@ -6,8 +6,9 @@ schema validation using canonical contracts.
 
 Behavior in this starter is intentionally conservative:
 - validates request
-- returns a deterministic governance-safe response
-- does not yet proxy to Codex API
+- uses explicit auth/runtime gating for proxy calls
+- validates mapped response against the governed schema
+- fails safe to `pause_for_human` on any proxy failure
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import httpx
 from jsonschema import Draft202012Validator
 from mcp.server.fastmcp import FastMCP
 
@@ -30,6 +32,10 @@ DEFAULT_BIND_HOST = "127.0.0.1"
 DEFAULT_BIND_PORT = 8787
 DEFAULT_TRANSPORT = "streamable-http"
 ALLOWED_TRANSPORTS = {"stdio", "sse", "streamable-http"}
+DEFAULT_CODEX_API_BASE_URL = "https://api.openai.com/v1"
+DEFAULT_CODEX_API_RESPONSES_PATH = "/responses"
+DEFAULT_CODEX_API_TIMEOUT_SECONDS = 30.0
+DEFAULT_CODEX_MAX_OUTPUT_TOKENS = 600
 
 
 def _load_schema(path: Path) -> dict[str, Any]:
@@ -59,6 +65,21 @@ def _env_int(name: str, default: int) -> int:
     return parsed
 
 
+def _env_float(name: str, default: float) -> float:
+    raw = os.getenv(name)
+    if raw is None or not raw.strip():
+        return default
+    try:
+        parsed = float(raw)
+    except ValueError:
+        print(f"Invalid {name}={raw!r}; using default {default}.", file=sys.stderr)
+        return default
+    if parsed <= 0:
+        print(f"Invalid {name}={raw!r}; using default {default}.", file=sys.stderr)
+        return default
+    return parsed
+
+
 def _resolve_transport(raw_transport: str) -> str:
     normalized = raw_transport.strip().lower()
     if normalized in ALLOWED_TRANSPORTS:
@@ -73,6 +94,13 @@ def _resolve_transport(raw_transport: str) -> str:
     return DEFAULT_TRANSPORT
 
 
+def _resolve_path(value: str, default_path: str) -> str:
+    normalized = (value or default_path).strip() or default_path
+    if normalized.startswith("/"):
+        return normalized
+    return f"/{normalized}"
+
+
 REQUEST_VALIDATOR = Draft202012Validator(_load_schema(REQUEST_SCHEMA_PATH))
 RESPONSE_VALIDATOR = Draft202012Validator(_load_schema(RESPONSE_SCHEMA_PATH))
 SUPERVISOR_BIND_HOST = os.getenv("SUPERVISOR_BIND_HOST", DEFAULT_BIND_HOST).strip() or DEFAULT_BIND_HOST
@@ -81,12 +109,30 @@ SUPERVISOR_TRANSPORT = _resolve_transport(os.getenv("SUPERVISOR_TRANSPORT", DEFA
 SUPERVISOR_ENABLE_CODEX_PROXY = _env_bool("SUPERVISOR_ENABLE_CODEX_PROXY", default=False)
 CODEX_API_KEY = os.getenv("CODEX_API_KEY", "").strip()
 CODEX_MODEL = os.getenv("CODEX_MODEL", "gpt-5").strip() or "gpt-5"
+CODEX_API_BASE_URL = os.getenv("CODEX_API_BASE_URL", DEFAULT_CODEX_API_BASE_URL).strip().rstrip("/")
+CODEX_API_RESPONSES_PATH = _resolve_path(
+    os.getenv("CODEX_API_RESPONSES_PATH", DEFAULT_CODEX_API_RESPONSES_PATH),
+    DEFAULT_CODEX_API_RESPONSES_PATH,
+)
+CODEX_API_TIMEOUT_SECONDS = _env_float("CODEX_API_TIMEOUT_SECONDS", DEFAULT_CODEX_API_TIMEOUT_SECONDS)
+CODEX_MAX_OUTPUT_TOKENS = _env_int("CODEX_MAX_OUTPUT_TOKENS", DEFAULT_CODEX_MAX_OUTPUT_TOKENS)
 
 mcp = FastMCP(
     "codex-supervisor",
     host=SUPERVISOR_BIND_HOST,
     port=SUPERVISOR_BIND_PORT,
 )
+
+
+def _dedupe_tags(tags: list[str]) -> list[str]:
+    seen: set[str] = set()
+    output: list[str] = []
+    for tag in tags:
+        if tag in seen:
+            continue
+        output.append(tag)
+        seen.add(tag)
+    return output
 
 
 def _starter_pause_response(
@@ -96,7 +142,7 @@ def _starter_pause_response(
     confidence: float,
     audit_tags: list[str],
 ) -> dict[str, Any]:
-    return {
+    response: dict[str, Any] = {
         "decision": "pause_for_human",
         "rationale": rationale,
         "next_actions": next_actions,
@@ -106,11 +152,185 @@ def _starter_pause_response(
             "Escalation reason explicit",
             "No out-of-scope action requested",
         ],
-        "audit_tags": audit_tags,
+        "audit_tags": _dedupe_tags(audit_tags),
+    }
+    return response
+
+
+def _build_codex_system_prompt() -> str:
+    return (
+        "You are a supervisor agent. Return ONLY one JSON object matching the "
+        "required schema fields and enums exactly. "
+        "No markdown, no prose before or after JSON. "
+        "Set decision to one of: proceed, retry, replan, pause_for_human, stop. "
+        "Confidence must be a number between 0 and 1. "
+        "If uncertain or policy scope is unclear, prefer pause_for_human."
+    )
+
+
+def _build_codex_user_prompt(payload: dict[str, Any]) -> str:
+    return (
+        "Generate a supervisor decision JSON for this escalation payload:\n"
+        f"{json.dumps(payload, ensure_ascii=True, separators=(',', ':'))}"
+    )
+
+
+def _extract_json_object(raw_text: str) -> dict[str, Any]:
+    cleaned = raw_text.strip()
+
+    if cleaned.startswith("```"):
+        lines = cleaned.splitlines()
+        if lines:
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        if lines and lines[0].strip().lower() == "json":
+            lines = lines[1:]
+        cleaned = "\n".join(lines).strip()
+
+    start = cleaned.find("{")
+    end = cleaned.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        raise ValueError("No JSON object found in Codex response text")
+
+    candidate = cleaned[start : end + 1]
+    parsed = json.loads(candidate)
+    if not isinstance(parsed, dict):
+        raise ValueError("Codex response JSON was not an object")
+    return parsed
+
+
+def _extract_output_text(response_json: dict[str, Any]) -> str:
+    output_text = response_json.get("output_text")
+    if isinstance(output_text, str) and output_text.strip():
+        return output_text.strip()
+
+    output = response_json.get("output")
+    if isinstance(output, list):
+        chunks: list[str] = []
+        for item in output:
+            if not isinstance(item, dict):
+                continue
+            if item.get("type") != "message":
+                continue
+            content = item.get("content")
+            if not isinstance(content, list):
+                continue
+            for part in content:
+                if not isinstance(part, dict):
+                    continue
+                part_type = part.get("type")
+                part_text = part.get("text")
+                if part_type in {"output_text", "text"} and isinstance(part_text, str) and part_text.strip():
+                    chunks.append(part_text)
+        if chunks:
+            return "\n".join(chunks).strip()
+
+    # Defensive fallback for chat-completions-like shapes.
+    choices = response_json.get("choices")
+    if isinstance(choices, list) and choices:
+        first = choices[0]
+        if isinstance(first, dict):
+            message = first.get("message")
+            if isinstance(message, dict):
+                content = message.get("content")
+                if isinstance(content, str) and content.strip():
+                    return content.strip()
+
+    raise ValueError("Codex API response did not contain parseable text output")
+
+
+def _append_runtime_audit_tags(response: dict[str, Any], extra_tags: list[str]) -> dict[str, Any]:
+    existing = response.get("audit_tags")
+    if not isinstance(existing, list):
+        existing = []
+    normalized_existing = [tag for tag in existing if isinstance(tag, str) and tag.strip()]
+    response["audit_tags"] = _dedupe_tags(normalized_existing + extra_tags)
+    return response
+
+
+def _codex_api_url() -> str:
+    return f"{CODEX_API_BASE_URL}{CODEX_API_RESPONSES_PATH}"
+
+
+def _call_codex_api(payload: dict[str, Any]) -> dict[str, Any]:
+    headers = {
+        "Authorization": f"Bearer {CODEX_API_KEY}",
+        "Content-Type": "application/json",
     }
 
+    request_body = {
+        "model": CODEX_MODEL,
+        "max_output_tokens": CODEX_MAX_OUTPUT_TOKENS,
+        "input": [
+            {
+                "role": "system",
+                "content": _build_codex_system_prompt(),
+            },
+            {
+                "role": "user",
+                "content": _build_codex_user_prompt(payload),
+            },
+        ],
+    }
 
-def _build_auth_scaffold_response() -> dict[str, Any]:
+    with httpx.Client(timeout=CODEX_API_TIMEOUT_SECONDS) as client:
+        response = client.post(_codex_api_url(), headers=headers, json=request_body)
+        response.raise_for_status()
+        response_json = response.json()
+
+    output_text = _extract_output_text(response_json)
+    parsed = _extract_json_object(output_text)
+    if "audit_tags" not in parsed:
+        parsed["audit_tags"] = []
+
+    _append_runtime_audit_tags(
+        parsed,
+        [
+            "proxy-enabled",
+            "provider-codex",
+            "auth-configured",
+        ],
+    )
+
+    return parsed
+
+
+def _error_label(exc: Exception) -> str:
+    if isinstance(exc, httpx.TimeoutException):
+        return "timeout"
+    if isinstance(exc, httpx.HTTPStatusError):
+        return f"http_{exc.response.status_code}"
+    if isinstance(exc, httpx.RequestError):
+        return "request_error"
+    if isinstance(exc, json.JSONDecodeError):
+        return "json_decode_error"
+    return exc.__class__.__name__.lower()
+
+
+def _validation_fail_safe_response(exc: Exception) -> dict[str, Any]:
+    label = _error_label(exc)
+    return _starter_pause_response(
+        rationale=(
+            "Starter response: supervisor response mapping failed schema "
+            f"validation ({label}). Escalating to human operator."
+        ),
+        next_actions=[
+            "Verify response contract mapping logic for governed schema fields.",
+            "Capture API output and compare against response schema requirements.",
+            "Retry after correcting mapping/validation behavior.",
+        ],
+        confidence=0.1,
+        audit_tags=[
+            "starter",
+            "response-validation-failed",
+            f"validation-error:{label}",
+            "manual-review-required",
+        ],
+    )
+
+
+def _build_auth_scaffold_response(payload: dict[str, Any]) -> dict[str, Any]:
     if not SUPERVISOR_ENABLE_CODEX_PROXY:
         return _starter_pause_response(
             rationale=(
@@ -120,7 +340,7 @@ def _build_auth_scaffold_response() -> dict[str, Any]:
             next_actions=[
                 "Verify authorized scope for the requested operation.",
                 "Attach tool output and retry with full evidence summary.",
-                "Set SUPERVISOR_ENABLE_CODEX_PROXY=true to enable auth scaffolding.",
+                "Set SUPERVISOR_ENABLE_CODEX_PROXY=true to enable proxy mode.",
             ],
             confidence=0.25,
             audit_tags=[
@@ -139,7 +359,7 @@ def _build_auth_scaffold_response() -> dict[str, Any]:
             next_actions=[
                 "Set CODEX_API_KEY in .env before retrying escalation.",
                 "Confirm CODEX_MODEL matches the intended supervisor model.",
-                "Re-run with the same payload after auth is configured.",
+                "Confirm CODEX_API_BASE_URL and CODEX_API_RESPONSES_PATH are correct.",
             ],
             confidence=0.15,
             audit_tags=[
@@ -150,25 +370,29 @@ def _build_auth_scaffold_response() -> dict[str, Any]:
             ],
         )
 
-    return _starter_pause_response(
-        rationale=(
-            "Starter response: Codex proxy auth is configured, but external API "
-            f"decisioning for model {CODEX_MODEL} is not implemented yet. "
-            "Escalating to human operator."
-        ),
-        next_actions=[
-            "Implement external Codex API request/response mapping.",
-            "Validate mapped response against response schema before returning.",
-            "Keep manual review in place until integration tests pass.",
-        ],
-        confidence=0.35,
-        audit_tags=[
-            "starter",
-            "proxy-enabled",
-            "auth-configured",
-            "manual-review-required",
-        ],
-    )
+    try:
+        return _call_codex_api(payload)
+    except Exception as exc:  # pragma: no cover - exercised in smoke harness
+        label = _error_label(exc)
+        return _starter_pause_response(
+            rationale=(
+                "Starter response: Codex proxy request failed "
+                f"({label}). Escalating to human operator."
+            ),
+            next_actions=[
+                "Verify CODEX_API_KEY and model configuration.",
+                "Verify CODEX_API_BASE_URL/CODEX_API_RESPONSES_PATH connectivity.",
+                "Retry with the same payload after correcting runtime config.",
+            ],
+            confidence=0.2,
+            audit_tags=[
+                "starter",
+                "proxy-enabled",
+                "proxy-call-failed",
+                f"proxy-error:{label}",
+                "manual-review-required",
+            ],
+        )
 
 
 @mcp.tool()
@@ -180,10 +404,15 @@ def ask_codex_supervisor(payload: dict[str, Any]) -> dict[str, Any]:
 
     REQUEST_VALIDATOR.validate(payload)
 
-    response = _build_auth_scaffold_response()
+    response = _build_auth_scaffold_response(payload)
 
-    RESPONSE_VALIDATOR.validate(response)
-    return response
+    try:
+        RESPONSE_VALIDATOR.validate(response)
+        return response
+    except Exception as exc:
+        fail_safe_response = _validation_fail_safe_response(exc)
+        RESPONSE_VALIDATOR.validate(fail_safe_response)
+        return fail_safe_response
 
 
 if __name__ == "__main__":
@@ -193,7 +422,9 @@ if __name__ == "__main__":
             f"transport={SUPERVISOR_TRANSPORT} "
             f"host={SUPERVISOR_BIND_HOST} "
             f"port={SUPERVISOR_BIND_PORT} "
-            f"proxy_enabled={SUPERVISOR_ENABLE_CODEX_PROXY}"
+            f"proxy_enabled={SUPERVISOR_ENABLE_CODEX_PROXY} "
+            f"codex_api_base={CODEX_API_BASE_URL} "
+            f"codex_api_path={CODEX_API_RESPONSES_PATH}"
         ),
         flush=True,
     )
