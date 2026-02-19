@@ -162,19 +162,29 @@ for cmd in gh git python3; do
   fi
 done
 
+managed_files=(
+  "AGENTS.md"
+  "README.md"
+  ".github/copilot-instructions.md"
+  ".vscode/settings.json"
+  "handbook/README.md"
+  "handbook/sops/README.md"
+  "handbook/sops/general-process-improvement-loop.md"
+  "handbook/runbooks/README.md"
+  "handbook/templates/README.md"
+  "handbook/templates/general-efficiency-opportunity.md"
+  "handbook/references/README.md"
+)
+
+if [ "$ROLE_SLUG" = "compliance-officer" ]; then
+  managed_files+=(
+    "scripts/co-pr-review.sh"
+    "handbook/runbooks/compliance-pr-review-wrapper.md"
+  )
+fi
+
 run_publishability_preflight() {
   local target_dir="$1"
-  local -a scan_files=(
-    "AGENTS.md"
-    "README.md"
-    ".github/copilot-instructions.md"
-    ".vscode/settings.json"
-    "handbook/README.md"
-    "handbook/sops/README.md"
-    "handbook/runbooks/README.md"
-    "handbook/templates/README.md"
-    "handbook/references/README.md"
-  )
   local -a scan_paths=()
   local -a missing=()
   local -a patterns=(
@@ -197,7 +207,7 @@ run_publishability_preflight() {
     "\\.local\\b"
   )
 
-  for file in "${scan_files[@]}"; do
+  for file in "${managed_files[@]}"; do
     if [ -f "${target_dir}/${file}" ]; then
       scan_paths+=("${target_dir}/${file}")
     else
@@ -301,20 +311,12 @@ git clone "https://github.com/${FULL_REPO}.git" "$TARGET_DIR" --branch "$BASE_BR
 
 mkdir -p "$TARGET_DIR/.github" "$TARGET_DIR/.vscode"
 mkdir -p "$TARGET_DIR/handbook/sops" "$TARGET_DIR/handbook/runbooks" "$TARGET_DIR/handbook/templates" "$TARGET_DIR/handbook/references"
-cp "$RENDER_DIR/AGENTS.md" "$TARGET_DIR/AGENTS.md"
-cp "$RENDER_DIR/README.md" "$TARGET_DIR/README.md"
-cp "$RENDER_DIR/.github/copilot-instructions.md" "$TARGET_DIR/.github/copilot-instructions.md"
-cp "$RENDER_DIR/.vscode/settings.json" "$TARGET_DIR/.vscode/settings.json"
-cp "$RENDER_DIR/handbook/README.md" "$TARGET_DIR/handbook/README.md"
-cp "$RENDER_DIR/handbook/sops/README.md" "$TARGET_DIR/handbook/sops/README.md"
-cp "$RENDER_DIR/handbook/sops/general-process-improvement-loop.md" "$TARGET_DIR/handbook/sops/general-process-improvement-loop.md"
-cp "$RENDER_DIR/handbook/runbooks/README.md" "$TARGET_DIR/handbook/runbooks/README.md"
-cp "$RENDER_DIR/handbook/templates/README.md" "$TARGET_DIR/handbook/templates/README.md"
-cp "$RENDER_DIR/handbook/templates/general-efficiency-opportunity.md" "$TARGET_DIR/handbook/templates/general-efficiency-opportunity.md"
-cp "$RENDER_DIR/handbook/references/README.md" "$TARGET_DIR/handbook/references/README.md"
+for file in "${managed_files[@]}"; do
+  mkdir -p "$(dirname "$TARGET_DIR/$file")"
+  cp "$RENDER_DIR/$file" "$TARGET_DIR/$file"
+done
 
-if git -C "$TARGET_DIR" diff --quiet -- AGENTS.md README.md .github/copilot-instructions.md .vscode/settings.json \
-  handbook/README.md handbook/sops/README.md handbook/sops/general-process-improvement-loop.md handbook/runbooks/README.md handbook/templates/README.md handbook/templates/general-efficiency-opportunity.md handbook/references/README.md; then
+if git -C "$TARGET_DIR" diff --quiet -- "${managed_files[@]}"; then
   echo "No role-repo sync changes detected for ${FULL_REPO} (${ROLE_SLUG})."
   exit 0
 fi
@@ -324,8 +326,7 @@ git -C "$TARGET_DIR" checkout -B "$SYNC_BRANCH" >/dev/null
 git -C "$TARGET_DIR" config user.name "context-engineering-sync[bot]"
 git -C "$TARGET_DIR" config user.email "context-engineering-sync@users.noreply.github.com"
 
-git -C "$TARGET_DIR" add AGENTS.md README.md .github/copilot-instructions.md .vscode/settings.json \
-  handbook/README.md handbook/sops/README.md handbook/sops/general-process-improvement-loop.md handbook/runbooks/README.md handbook/templates/README.md handbook/templates/general-efficiency-opportunity.md handbook/references/README.md
+git -C "$TARGET_DIR" add "${managed_files[@]}"
 
 if git -C "$TARGET_DIR" diff --cached --quiet; then
   echo "No staged changes after sync for ${FULL_REPO}."
@@ -357,6 +358,7 @@ if [ "$CREATE_PR" = "false" ]; then
 fi
 
 PR_BODY_FILE="${WORK_DIR}/pr-body.md"
+managed_files_markdown="$(printf -- '- `%s`\n' "${managed_files[@]}")"
 cat > "$PR_BODY_FILE" <<PRBODY
 Primary-Role: Implementation Specialist
 Reviewed-By-Role: Compliance Officer
@@ -366,17 +368,7 @@ Executive-Sponsor-Approval: Not-Required
 Automated sync of role-repo managed artifacts from Context-Engineering source \`${SOURCE_REF}\` for role \`${ROLE_SLUG}\`.
 
 ## Managed Files Updated
-- \`AGENTS.md\`
-- \`.github/copilot-instructions.md\`
-- \`.vscode/settings.json\`
-- \`README.md\`
-- `handbook/README.md`
-- `handbook/sops/README.md`
-- `handbook/sops/general-process-improvement-loop.md`
-- `handbook/runbooks/README.md`
-- `handbook/templates/README.md`
-- `handbook/templates/general-efficiency-opportunity.md`
-- `handbook/references/README.md`
+${managed_files_markdown}
 
 Generated via:
 - \`10-templates/repo-starters/role-repo-template/scripts/render-role-repo-template.sh\`
