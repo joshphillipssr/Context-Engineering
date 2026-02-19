@@ -10,9 +10,12 @@
     "Apply role attribution metadata and required status labels on PRs.",
     "Keep changes minimal, scoped, and reversible.",
     "After each substantive task, run a brief efficiency reflection: 'How could this have been more efficient?'.",
-    "If reusable friction or workaround occurred, file or link an `efficiency-opportunity` issue before handoff.",
+    "Before handoff, reconcile the efficiency reflection against open `efficiency-opportunity` and `agent-feedback` issues in the current role repo.",
+    "If an equivalent open issue exists, append new evidence there and do not duplicate.",
+    "If no equivalent open issue exists and reusable friction/workaround occurred, create a new `efficiency-opportunity` issue before handoff.",
     "Efficiency reports must include blocker type, severity, impact, workaround used, and suggested fix.",
-    "Use labels `efficiency-opportunity` and `agent-feedback`; if an equivalent open issue exists, link it and append new evidence instead of duplicating."
+    "Use labels `efficiency-opportunity` and `agent-feedback` on new efficiency issues.",
+    "Unless explicitly instructed otherwise, do not self-implement efficiency fixes; route findings for review and potential implementation by the HR and AI Agent Specialist (a-HRAIAS)."
   ],
   "escalation_triggers": [
     "Instructions conflict with governance or role charter requirements.",
