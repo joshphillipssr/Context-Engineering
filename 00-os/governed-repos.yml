@@ -34,7 +34,8 @@ repositories:
     rollout_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/17"
     marker_pr: "https://github.com/Josh-Phillips-LLC/context-engineering-role-compliance-officer/pull/6"
     control_gap_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/28"
-    notes: "Role-governance controls exist; marker rollout tracked in Issue #17 with control gaps in Issue #28."
+    transition_controls_pr: "https://github.com/Josh-Phillips-LLC/context-engineering-role-compliance-officer/pull/8"
+    notes: "Role-governance marker and transition controls are applied; governed promotion remains pending governed-gate evidence."
 
   - repo: "Josh-Phillips-LLC/context-engineering-role-hr-ai-agent-specialist"
     family: "context-engineering-role-repos"
@@ -44,7 +45,8 @@ repositories:
     rollout_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/17"
     marker_pr: "https://github.com/Josh-Phillips-LLC/context-engineering-role-hr-ai-agent-specialist/pull/6"
     control_gap_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/28"
-    notes: "Role-governance controls exist; marker rollout tracked in Issue #17 with control gaps in Issue #28."
+    transition_controls_pr: "https://github.com/Josh-Phillips-LLC/context-engineering-role-hr-ai-agent-specialist/pull/7"
+    notes: "Role-governance marker and transition controls are applied; governed promotion remains pending governed-gate evidence."
 
   - repo: "Josh-Phillips-LLC/context-engineering-role-implementation-specialist"
     family: "context-engineering-role-repos"
@@ -54,7 +56,8 @@ repositories:
     rollout_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/17"
     marker_pr: "https://github.com/Josh-Phillips-LLC/context-engineering-role-implementation-specialist/pull/3"
     control_gap_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/28"
-    notes: "Role-governance controls exist; marker rollout tracked in Issue #17 with control gaps in Issue #28."
+    transition_controls_pr: "https://github.com/Josh-Phillips-LLC/context-engineering-role-implementation-specialist/pull/4"
+    notes: "Role-governance marker and transition controls are applied; governed promotion remains pending governed-gate evidence."
 
   - repo: "Josh-Phillips-LLC/context-engineering-role-systems-architect"
     family: "context-engineering-role-repos"
@@ -64,7 +67,8 @@ repositories:
     rollout_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/17"
     marker_pr: "https://github.com/Josh-Phillips-LLC/context-engineering-role-systems-architect/pull/3"
     control_gap_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/28"
-    notes: "Role-governance controls exist; marker rollout tracked in Issue #17 with control gaps in Issue #28."
+    transition_controls_pr: "https://github.com/Josh-Phillips-LLC/context-engineering-role-systems-architect/pull/4"
+    notes: "Role-governance marker and transition controls are applied; governed promotion remains pending governed-gate evidence."
 
   - repo: "Josh-Phillips-LLC/JoshGPT-MCP"
     family: "joshgpt-platform-repos"
