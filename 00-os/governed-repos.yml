@@ -92,4 +92,6 @@ repositories:
     owner_role: "AI Governance Manager"
     marker_path: ".context-engineering/governance.yml"
     rollout_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/20"
-    notes: "Governance onboarding in progress and tracked in Issue #20."
+    marker_pr: "https://github.com/Josh-Phillips-LLC/mcp-auth-broker/pull/10"
+    transition_controls_pr: "https://github.com/Josh-Phillips-LLC/mcp-auth-broker/pull/10"
+    notes: "Governance onboarding baseline is applied with transition controls; governed promotion remains pending governed-gate evidence."
