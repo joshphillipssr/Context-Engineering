@@ -45,7 +45,10 @@ Notes:
     - AGENTS.md
     - README.md
     - .github/copilot-instructions.md
+    - .github/pull_request_template.md
+    - .github/workflows/governance-pr-gates.yml
     - .vscode/settings.json
+    - scripts/validate-pr-metadata.py
     - handbook/README.md
     - handbook/sops/README.md
     - handbook/sops/general-process-improvement-loop.md
@@ -166,7 +169,10 @@ managed_files=(
   "AGENTS.md"
   "README.md"
   ".github/copilot-instructions.md"
+  ".github/pull_request_template.md"
+  ".github/workflows/governance-pr-gates.yml"
   ".vscode/settings.json"
+  "scripts/validate-pr-metadata.py"
   "handbook/README.md"
   "handbook/sops/README.md"
   "handbook/sops/general-process-improvement-loop.md"
