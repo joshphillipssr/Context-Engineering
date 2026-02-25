@@ -12,9 +12,11 @@ Apply this protocol when running inside role-scoped workstation containers.
 
 1. Prefer wrapper usage for normal GitHub CLI operations:
    - `gh-role <gh-args>`
-2. If auth is stale or commands fail:
+2. `gh-role` preflights auth freshness in app mode and auto-runs re-mint when stale.
+   - Preflight check: `env -u GH_TOKEN -u GITHUB_TOKEN gh api graphql -f query='query { viewer { login } }' --jq '.data.viewer.login'`
+3. If auth still fails after wrapper preflight:
    - `env -u GH_TOKEN -u GITHUB_TOKEN /usr/local/bin/remint-role-github-app-auth.sh`
-3. Retry the original command via `gh-role`.
+4. Retry the original command via `gh-role`.
 
 ## Verification commands
 

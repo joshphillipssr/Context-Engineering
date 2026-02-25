@@ -39,10 +39,11 @@ If you are running inside a role workstation container:
 - Treat role-app auth as authoritative when `ROLE_GITHUB_AUTH_MODE=app`.
 - Do not run `gh auth login` in app mode.
 - Always run GitHub CLI with `GH_TOKEN` and `GITHUB_TOKEN` unset so persisted role auth is used.
-- If `gh` auth fails, re-mint role app auth before retrying:
-  - `/usr/local/bin/remint-role-github-app-auth.sh`
 - Prefer wrapper usage when available:
   - `gh-role <gh-args>`
+- `gh-role` preflights auth freshness in app mode and auto-runs `/usr/local/bin/remint-role-github-app-auth.sh` when stale.
+- If auth still fails after wrapper preflight, re-mint and retry:
+  - `/usr/local/bin/remint-role-github-app-auth.sh`
 
 Verification commands:
 
