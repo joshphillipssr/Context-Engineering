@@ -73,6 +73,20 @@ Runbooks provide step-by-step procedures for:
 
 **Related artifacts:** `10-templates/mcp-contracts/`, `10-templates/repo-starters/mcp-supervisor-repo-template/`
 
+### [Governed Repo Ownership Reconciliation](./governed-repo-ownership-reconciliation.md)
+
+**When to use:** Weekly governance ownership integrity checks or before/after state promotions (`autonomous -> transition -> governed`)
+
+**Scope:** Reconciliation between `00-os/governed-repos.yml` and per-repo `.context-engineering/governance.yml` markers for `transition` and `governed` repos
+
+**Key processes:**
+- Deterministic reconciliation checklist and cadence
+- Registry-to-marker field comparison requirements
+- Mismatch severity/priority guidance
+- Evidence capture expectations and follow-up issue requirements
+
+**Related artifacts:** `00-os/governed-repos.yml`, `.context-engineering/governance.yml`, `00-os/scripts/validate-governance-ownership.py`
+
 ---
 
 ## Runbook Standards
