@@ -370,6 +370,7 @@ Initial rollout tracking issues (created under this policy):
 
 - Role repo rollout: #17
 - JoshGPT repo rollout: #18
+- mcp-auth-broker rollout: #20
 
 #### Transition gate (enter `transition`)
 

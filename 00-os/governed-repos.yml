@@ -73,3 +73,11 @@ repositories:
     marker_path: ".context-engineering/governance.yml"
     rollout_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/18"
     notes: "Candidate repository for governance onboarding tracked in Issue #18."
+
+  - repo: "Josh-Phillips-LLC/mcp-auth-broker"
+    family: "mcp-service-repos"
+    state: "transition"
+    owner_role: "AI Governance Manager"
+    marker_path: ".context-engineering/governance.yml"
+    rollout_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/20"
+    notes: "Governance onboarding in progress and tracked in Issue #20."
