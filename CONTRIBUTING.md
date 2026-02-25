@@ -19,6 +19,10 @@ Thanks for helping improve Context-Engineering. Please keep changes scoped and r
 
 - Protected paths require Executive Sponsor approval.
 - Compliance Officer posts the PR Review Report on reviewed PRs.
+- CI validates machine-readable PR metadata keys and canonical enum values for:
+  - `Primary-Role`
+  - `Reviewed-By-Role`
+  - `Executive-Sponsor-Approval`
 ## Agent Efficiency Feedback Workflow
 
 Agent-scoped workflows are designed to discover and surface friction points for continuous improvement.

@@ -114,7 +114,7 @@ if [ -d "$OUTPUT_DIR" ] && [ -n "$(ls -A "$OUTPUT_DIR" 2>/dev/null || true)" ] &
   exit 1
 fi
 
-mkdir -p "$OUTPUT_DIR/.github" "$OUTPUT_DIR/.vscode" "$OUTPUT_DIR/scripts"
+mkdir -p "$OUTPUT_DIR/.github/workflows" "$OUTPUT_DIR/.vscode" "$OUTPUT_DIR/scripts"
 mkdir -p "$OUTPUT_DIR/handbook/sops" "$OUTPUT_DIR/handbook/runbooks" "$OUTPUT_DIR/handbook/templates" "$OUTPUT_DIR/handbook/references"
 
 GENERATED_AT_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
@@ -158,8 +158,11 @@ render_template() {
 
 render_template "${TEMPLATE_ROOT}/templates/AGENTS.md.tmpl" "${OUTPUT_DIR}/AGENTS.md"
 render_template "${TEMPLATE_ROOT}/templates/.github/copilot-instructions.md.tmpl" "${OUTPUT_DIR}/.github/copilot-instructions.md"
+render_template "${TEMPLATE_ROOT}/templates/.github/pull_request_template.md.tmpl" "${OUTPUT_DIR}/.github/pull_request_template.md"
+render_template "${TEMPLATE_ROOT}/templates/.github/workflows/governance-pr-gates.yml.tmpl" "${OUTPUT_DIR}/.github/workflows/governance-pr-gates.yml"
 render_template "${TEMPLATE_ROOT}/templates/README.md.tmpl" "${OUTPUT_DIR}/README.md"
 render_template "${TEMPLATE_ROOT}/templates/.vscode/settings.json.tmpl" "${OUTPUT_DIR}/.vscode/settings.json"
+render_template "${TEMPLATE_ROOT}/templates/scripts/validate-pr-metadata.py.tmpl" "${OUTPUT_DIR}/scripts/validate-pr-metadata.py"
 render_template "${TEMPLATE_ROOT}/templates/handbook/README.md.tmpl" "${OUTPUT_DIR}/handbook/README.md"
 render_template "${TEMPLATE_ROOT}/templates/handbook/sops/README.md.tmpl" "${OUTPUT_DIR}/handbook/sops/README.md"
 render_template "${TEMPLATE_ROOT}/templates/handbook/sops/general-process-improvement-loop.md.tmpl" "${OUTPUT_DIR}/handbook/sops/general-process-improvement-loop.md"
@@ -173,6 +176,8 @@ if [ "$ROLE_SLUG" = "compliance-officer" ]; then
   chmod +x "${OUTPUT_DIR}/scripts/co-pr-review.sh"
   render_template "${TEMPLATE_ROOT}/templates/handbook/runbooks/compliance-pr-review-wrapper.md.tmpl" "${OUTPUT_DIR}/handbook/runbooks/compliance-pr-review-wrapper.md"
 fi
+
+chmod +x "${OUTPUT_DIR}/scripts/validate-pr-metadata.py"
 
 echo "Generated role repo scaffold: ${OUTPUT_DIR}"
 echo "Role: ${ROLE_NAME} (${ROLE_SLUG})"

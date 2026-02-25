@@ -131,7 +131,10 @@ run_publishability_preflight() {
     "AGENTS.md"
     "README.md"
     ".github/copilot-instructions.md"
+    ".github/pull_request_template.md"
+    ".github/workflows/governance-pr-gates.yml"
     ".vscode/settings.json"
+    "scripts/validate-pr-metadata.py"
   )
   local -a scan_paths=()
   local -a missing=()
