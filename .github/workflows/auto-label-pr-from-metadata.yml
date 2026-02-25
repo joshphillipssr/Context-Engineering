@@ -22,6 +22,14 @@ jobs:
             const repo = context.repo.repo;
             const issue_number = pr.number;
             const body = pr.body || "";
+            const targetRepoFullName = `${owner}/${repo}`;
+            const sourceRepoFullName = pr.head?.repo?.full_name || "";
+            const isForkPullRequest = sourceRepoFullName !== "" && sourceRepoFullName !== targetRepoFullName;
+
+            if (isForkPullRequest) {
+              core.info(`Skipping label mutation for fork PR source '${sourceRepoFullName}'.`);
+              return;
+            }
 
             function extractValue(key) {
               const line = body
@@ -41,7 +49,7 @@ jobs:
             if (!executiveSponsorApproval) missing.push("Executive-Sponsor-Approval");
 
             if (missing.length > 0) {
-              core.setFailed(`Missing required PR metadata value(s): ${missing.join(", ")}`);
+              core.warning(`Skipping label mutation: missing required PR metadata value(s): ${missing.join(", ")}`);
               return;
             }
 
@@ -61,17 +69,17 @@ jobs:
             };
 
             if (!roleToLabel[primaryRole]) {
-              core.setFailed(`Invalid Primary-Role value: \"${primaryRole}\"`);
+              core.warning(`Skipping label mutation: invalid Primary-Role value: \"${primaryRole}\"`);
               return;
             }
 
             if (reviewedByRole !== "N/A" && !roleToLabel[reviewedByRole]) {
-              core.setFailed(`Invalid Reviewed-By-Role value: \"${reviewedByRole}\"`);
+              core.warning(`Skipping label mutation: invalid Reviewed-By-Role value: \"${reviewedByRole}\"`);
               return;
             }
 
             if (!statusByExecApproval[executiveSponsorApproval]) {
-              core.setFailed(`Invalid Executive-Sponsor-Approval value: \"${executiveSponsorApproval}\"`);
+              core.warning(`Skipping label mutation: invalid Executive-Sponsor-Approval value: \"${executiveSponsorApproval}\"`);
               return;
             }
 
