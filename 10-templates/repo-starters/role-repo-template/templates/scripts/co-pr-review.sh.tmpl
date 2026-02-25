@@ -118,12 +118,18 @@ if [[ -n "$repo" ]]; then
   gh_args+=( -R "$repo" )
 fi
 
-viewer_login="$(gh_safe api graphql -f query='query { viewer { login } }' --jq '.data.viewer.login')"
-expected_login_base="${expected_login%[bot]}"
-expected_login_base="${expected_login_base% }"
+normalize_login() {
+  local login="${1:-}"
+  login="${login%\[bot\]}"
+  printf '%s' "${login,,}"
+}
 
-if [[ "$viewer_login" != "$expected_login" && "$viewer_login" != "$expected_login_base" ]]; then
-  echo "Error: identity mismatch. Expected '$expected_login' (or '$expected_login_base'), got '$viewer_login'." >&2
+viewer_login="$(gh_safe api graphql -f query='query { viewer { login } }' --jq '.data.viewer.login')"
+expected_login_normalized="$(normalize_login "$expected_login")"
+viewer_login_normalized="$(normalize_login "$viewer_login")"
+
+if [[ "$viewer_login_normalized" != "$expected_login_normalized" ]]; then
+  echo "Error: identity mismatch. Expected '$expected_login' (normalized '$expected_login_normalized'), got '$viewer_login' (normalized '$viewer_login_normalized')." >&2
   exit 1
 fi
 
@@ -169,9 +175,10 @@ fi
 new_author="$(printf '%s' "$new_review_json" | jq -r '.author.login')"
 new_state="$(printf '%s' "$new_review_json" | jq -r '.state')"
 new_submitted_at="$(printf '%s' "$new_review_json" | jq -r '.submittedAt')"
+new_author_normalized="$(normalize_login "$new_author")"
 
-if [[ "$new_author" != "$expected_login" && "$new_author" != "$expected_login_base" ]]; then
-  echo "Error: verification failed. Expected review author '$expected_login' (or '$expected_login_base'), got '$new_author'." >&2
+if [[ "$new_author_normalized" != "$expected_login_normalized" ]]; then
+  echo "Error: verification failed. Expected review author '$expected_login' (normalized '$expected_login_normalized'), got '$new_author' (normalized '$new_author_normalized')." >&2
   exit 1
 fi
 
