@@ -322,6 +322,91 @@ If the branch should be retained, omit the `--delete-branch` flag.
 
 ---
 
+## Repository Governance Adoption Model (Ownership States)
+
+This model defines how repository ownership moves from autonomous operation to fully governed operation under Context-Engineering.
+
+### Canonical ownership declarations
+
+Governance ownership is declared in two places:
+
+- Central registry (authoritative): `00-os/governed-repos.yml`
+- Local marker (in governed repo): `.context-engineering/governance.yml`
+
+If the local marker and central registry disagree, the central registry is authoritative.
+
+### Repository governance states
+
+- `autonomous`
+  - Repository is not yet governed by Context-Engineering controls.
+  - May consume templates voluntarily.
+- `transition`
+  - Repository is formally onboarded for governance adoption and has an active rollout plan.
+  - Required controls are being implemented and evidenced.
+- `governed`
+  - Repository is fully governed under this policy and must satisfy governed controls continuously.
+
+### Required controls by state
+
+| Control Family | autonomous | transition | governed |
+| --- | --- | --- | --- |
+| Central registry entry (`00-os/governed-repos.yml`) | Required | Required | Required |
+| Local ownership marker (`.context-engineering/governance.yml`) | Optional | Required | Required |
+| Issue-first PR workflow (`Issue -> Branch -> PR -> Review -> Merge`) | Recommended | Required | Required |
+| Role/status labels + PR metadata fields | Recommended | Required | Required |
+| Review policy | Repo-local | Compliance Officer required for governance-affecting changes | Compliance Officer required; Executive Sponsor required for protected paths |
+| Branch protection and required checks | Repo-local | Baseline branch protection and CI checks defined with gap list | Enforced branch protection and required checks aligned to governance policy |
+| Role-instruction contract (where role agents are present) | Optional | Required plan and migration issue | Required and enforced (`AGENTS.md` contract chain) |
+
+### Onboarding workflow (`autonomous -> transition -> governed`)
+
+1. Open governance adoption issue in `Context-Engineering` with objective, scope, constraints, and definition of done.
+2. Add or update registry entry in `00-os/governed-repos.yml` and set target state.
+3. Commit local marker file in target repo (`.context-engineering/governance.yml`).
+4. Implement required controls for transition/governed state.
+5. Record evidence and approvals before state promotion in registry.
+
+Initial rollout tracking issues (created under this policy):
+
+- Role repo rollout: #17
+- JoshGPT repo rollout: #18
+- mcp-auth-broker rollout: #20
+
+#### Transition gate (enter `transition`)
+
+Required evidence:
+
+- Linked adoption issue in `Context-Engineering`
+- Named owner role and target window
+- Control gap list with follow-up implementation issues
+- Local governance marker added to target repo
+
+#### Governed gate (enter `governed`)
+
+Required evidence:
+
+- Transition controls implemented and verified
+- Required branch protection/check policy active
+- Compliance Officer review completed
+- Executive Sponsor approval recorded for protected-path adoption changes
+- Role-instruction contract verified for role repos (if applicable)
+
+### Offboarding / de-governance workflow (`governed -> transition|autonomous`)
+
+1. Open protected de-governance issue in `Context-Engineering` with rationale, risk impact, and rollback plan.
+2. Require Compliance Officer review and Executive Sponsor approval.
+3. Update central registry state and local marker state in same change window.
+4. Capture explicit follow-up issue(s) for any control removals.
+5. Preserve audit links (issue, PR, approval comments) in the offboarding record.
+
+### Escalation and exception handling
+
+- Any unmet required control in `transition` or `governed` state must be tracked as a linked exception issue with owner and expiry date.
+- Exceptions are time-bound and must include compensating controls.
+- Expired exceptions without renewal approval require immediate state downgrade to `transition` until remediated.
+
+---
+
 ## Role Attribution & Auditability (Humans vs Tools)
 
 Because all GitHub actions are authenticated under the same human identity (`joshphillipssr`), **explicit role attribution is required** to preserve auditability and intent.

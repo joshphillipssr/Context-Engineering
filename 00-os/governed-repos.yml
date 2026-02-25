@@ -1,0 +1,83 @@
+# Canonical Governed Repository Registry
+#
+# This registry declares governance ownership state for repositories managed by
+# Context-Engineering policy. It is authoritative when determining repository
+# governance status.
+
+metadata:
+  version: "1.0"
+  last_updated: "2026-02-25"
+  canonical_source: "00-os/governed-repos.yml"
+  governing_policy_ref: "governance.md#repository-governance-adoption-model-ownership-states"
+
+state_model:
+  autonomous:
+    description: "Repository operates independently and is not yet governed."
+  transition:
+    description: "Repository is in active adoption with required control rollout."
+  governed:
+    description: "Repository is fully governed and must satisfy governed controls."
+
+repositories:
+  - repo: "Josh-Phillips-LLC/Context-Engineering"
+    family: "context-engineering-core"
+    state: "governed"
+    owner_role: "AI Governance Manager"
+    marker_path: ".context-engineering/governance.yml"
+    notes: "Canonical governance source repository."
+
+  - repo: "Josh-Phillips-LLC/context-engineering-role-compliance-officer"
+    family: "context-engineering-role-repos"
+    state: "transition"
+    owner_role: "AI Governance Manager"
+    marker_path: ".context-engineering/governance.yml"
+    rollout_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/17"
+    notes: "Role-governance controls exist; marker rollout tracked in Issue #17."
+
+  - repo: "Josh-Phillips-LLC/context-engineering-role-hr-ai-agent-specialist"
+    family: "context-engineering-role-repos"
+    state: "transition"
+    owner_role: "AI Governance Manager"
+    marker_path: ".context-engineering/governance.yml"
+    rollout_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/17"
+    notes: "Role-governance controls exist; marker rollout tracked in Issue #17."
+
+  - repo: "Josh-Phillips-LLC/context-engineering-role-implementation-specialist"
+    family: "context-engineering-role-repos"
+    state: "transition"
+    owner_role: "AI Governance Manager"
+    marker_path: ".context-engineering/governance.yml"
+    rollout_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/17"
+    notes: "Role-governance controls exist; marker rollout tracked in Issue #17."
+
+  - repo: "Josh-Phillips-LLC/context-engineering-role-systems-architect"
+    family: "context-engineering-role-repos"
+    state: "transition"
+    owner_role: "AI Governance Manager"
+    marker_path: ".context-engineering/governance.yml"
+    rollout_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/17"
+    notes: "Role-governance controls exist; marker rollout tracked in Issue #17."
+
+  - repo: "Josh-Phillips-LLC/JoshGPT-MCP"
+    family: "joshgpt-platform-repos"
+    state: "autonomous"
+    owner_role: "AI Governance Manager"
+    marker_path: ".context-engineering/governance.yml"
+    rollout_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/18"
+    notes: "Candidate repository for governance onboarding tracked in Issue #18."
+
+  - repo: "Josh-Phillips-LLC/JoshGPT-vscode"
+    family: "joshgpt-platform-repos"
+    state: "autonomous"
+    owner_role: "AI Governance Manager"
+    marker_path: ".context-engineering/governance.yml"
+    rollout_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/18"
+    notes: "Candidate repository for governance onboarding tracked in Issue #18."
+
+  - repo: "Josh-Phillips-LLC/mcp-auth-broker"
+    family: "mcp-service-repos"
+    state: "transition"
+    owner_role: "AI Governance Manager"
+    marker_path: ".context-engineering/governance.yml"
+    rollout_issue: "https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/20"
+    notes: "Governance onboarding in progress and tracked in Issue #20."
