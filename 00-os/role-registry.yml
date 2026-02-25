@@ -33,7 +33,7 @@ roles:
       app_id_value: 2852927
       private_key_secret: IMPLEMENTATION_SPECIALIST_APP_PRIVATE_KEY
       installation_id_secret: IMPLEMENTATION_SPECIALIST_APP_INSTALLATION_ID
-      installation_id_value: 109751398
+      installation_id_value: 112286254
       env_prefix: IMPLEMENTATION
     
     # Docker Compose configuration
@@ -85,7 +85,7 @@ roles:
       app_id_value: 2853089
       private_key_secret: SYSTEMS_ARCHITECT_APP_PRIVATE_KEY
       installation_id_secret: SYSTEMS_ARCHITECT_APP_INSTALLATION_ID
-      installation_id_value: 109760446
+      installation_id_value: 112285784
       env_prefix: SYSTEMS_ARCHITECT
     
     compose:
