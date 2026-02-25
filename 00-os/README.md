@@ -24,6 +24,17 @@ python3 00-os/scripts/generate-role-wiring.py
 python3 00-os/scripts/generate-role-wiring.py --check
 ```
 
+After modifying governance ownership files:
+
+```bash
+# Validate governance ownership artifacts
+python3 00-os/scripts/validate-governance-ownership.py
+```
+
+This validates:
+- `00-os/governed-repos.yml`
+- `.context-engineering/governance.yml`
+
 ## Generated Targets
 
 The generator updates marked sections in:
