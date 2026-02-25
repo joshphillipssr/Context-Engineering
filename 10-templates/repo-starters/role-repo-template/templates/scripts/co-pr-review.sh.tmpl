@@ -133,8 +133,9 @@ if [[ "$viewer_login_normalized" != "$expected_login_normalized" ]]; then
   exit 1
 fi
 
-pre_reviews_json="$(gh_safe pr view "$pr_number" "${gh_args[@]}" --json reviews)"
-pre_count="$(printf '%s' "$pre_reviews_json" | jq '.reviews | length')"
+pre_pr_json="$(gh_safe pr view "$pr_number" "${gh_args[@]}" --json reviews,headRefOid)"
+pre_count="$(printf '%s' "$pre_pr_json" | jq '.reviews | length')"
+pre_head_oid="$(printf '%s' "$pre_pr_json" | jq -r '.headRefOid // ""')"
 
 review_args=(pr review "$pr_number" "${gh_args[@]}")
 expected_state=""
@@ -160,15 +161,17 @@ elif [[ -n "$body" ]]; then
 fi
 
 existing_review_json="$({
-  printf '%s' "$pre_reviews_json" \
+  printf '%s' "$pre_pr_json" \
   | jq -c \
     --arg viewer "$viewer_login_normalized" \
     --arg state "$expected_state" \
+    --arg head "$pre_head_oid" \
     --arg body "$target_body" '
       .reviews
       | map(
           select((.author.login | sub("\\[bot\\]$"; "") | ascii_downcase) == $viewer)
           | select(.state == $state)
+          | select($head == "" or (.commit.oid // "") == $head)
           | select((.body // "") == $body)
         )
       | sort_by(.submittedAt)
