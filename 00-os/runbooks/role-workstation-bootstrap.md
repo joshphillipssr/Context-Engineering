@@ -19,6 +19,7 @@ Role workstations use a shared bootstrap script (`.devcontainer-workstation/scri
 - **VS Code command approval issues**: Why users see repeated approval prompts
 - **Role auth troubleshooting**: When role GitHub App identity is not applied
 - **Configuration drift**: Container behavior differs from expected defaults
+- **Issue/PR safety preflight**: Before creating issues or PRs from role containers
 
 ## Bootstrap Sequence
 
@@ -86,6 +87,34 @@ gh api graphql -f query='{viewer{login}}' --jq '.data.viewer.login'
 **Expected output**: App slug (e.g., `a-systemsarchitect[bot]`), not a user login.
 
 **Common issue**: `401 Bad credentials` after ~1 hour → Installation tokens expire; run `/usr/local/bin/remint-role-github-app-auth.sh` or use `gh-role` wrapper.
+
+### 3.5 Fork-First Repo Preflight (Required)
+
+**Location**: `00-os/scripts/ensure-role-repo-fork-first.sh`
+
+**Required before issue/PR operations**:
+- Run this in the role repository before any `gh issue ...`, `gh pr ...`, or push operation.
+- This enforces deterministic repo-local push targeting and validates owner context.
+
+**Command**:
+```bash
+./00-os/scripts/ensure-role-repo-fork-first.sh
+```
+
+**What it enforces (repo-local only)**:
+- `remote.pushDefault=origin`
+- `branch.<current>.pushRemote=origin`
+- `remote.origin.gh-resolved=base`
+- If `upstream` points to `joshphillipssr/*`, upstream push URL is set to `DISABLED` while fetch remains intact.
+
+**Owner guardrail**:
+- Preflight exits non-zero unless `origin` owner is `Josh-Phillips-LLC`.
+- Explicit override (for deliberate non-canonical targets):
+```bash
+./00-os/scripts/ensure-role-repo-fork-first.sh --allow-origin-owner-mismatch
+```
+
+**Why required**: Prevents accidental issue/PR/push actions to `joshphillipssr/*` when canonical role-container targets should be `Josh-Phillips-LLC/*`.
 
 ### 4. Runtime Instruction Generation
 
@@ -278,6 +307,7 @@ Bootstrap runs before `sleep infinity`, so all seeding completes during containe
 ## Related Documentation
 
 - **Setup Guide**: `.devcontainer-workstation/README.md`
+- **Fork-First Preflight Script**: `00-os/scripts/ensure-role-repo-fork-first.sh`
 - **Auth Validation**: `00-os/runbooks/github-app-bootstrap-validation.md`
 - **Permission Escalation**: `00-os/runbooks/github-app-permission-escalation.md`
 - **Bootstrap Script Source**: `.devcontainer-workstation/scripts/init-workstation.sh`
