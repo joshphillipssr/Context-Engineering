@@ -86,7 +86,7 @@ gh api graphql -f query='{viewer{login}}' --jq '.data.viewer.login'
 
 **Expected output**: App slug (e.g., `a-systemsarchitect[bot]`), not a user login.
 
-**Common issue**: `401 Bad credentials` after ~1 hour → Installation tokens expire; run `/usr/local/bin/remint-role-github-app-auth.sh` or use `gh-role` wrapper.
+**Common issue**: `401 Bad credentials` after ~1 hour → Installation tokens expire; prefer `gh-role` (auto-preflights API auth freshness and re-mints when stale), or run `/usr/local/bin/remint-role-github-app-auth.sh` manually.
 
 ### 3.5 Fork-First Repo Preflight (Required)
 
@@ -197,7 +197,7 @@ git clone <role-repo-url>
    docker exec <container-name> ls -la /run/secrets/role_github_app_private_key
    ```
 
-4. Re-mint token manually:
+4. Re-mint token manually (or run the target command through `gh-role` to trigger wrapper preflight):
    ```bash
    docker exec <container-name> /usr/local/bin/remint-role-github-app-auth.sh
    ```

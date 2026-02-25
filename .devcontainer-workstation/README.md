@@ -192,8 +192,14 @@ If re-mint cannot proceed, it emits explicit errors for:
 Typical issue-first usage:
 
 ```bash
+gh-role issue develop <ISSUE_NUMBER> --checkout
+```
+
+If wrapper preflight still encounters auth errors, run the re-mint helper and retry:
+
+```bash
 /usr/local/bin/remint-role-github-app-auth.sh
-gh issue develop <ISSUE_NUMBER> --checkout
+gh-role issue develop <ISSUE_NUMBER> --checkout
 ```
 
 ## Git Identity Configuration
