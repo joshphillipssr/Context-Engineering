@@ -60,7 +60,7 @@ roles:
       app_id_value: 2853078
       private_key_secret: COMPLIANCE_OFFICER_APP_PRIVATE_KEY
       installation_id_secret: COMPLIANCE_OFFICER_APP_INSTALLATION_ID
-      installation_id_value: 109760115
+      installation_id_value: 112284302
       env_prefix: COMPLIANCE
     
     compose:
