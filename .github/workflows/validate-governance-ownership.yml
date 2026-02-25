@@ -1,0 +1,41 @@
+name: Validate Governance Ownership YAML
+
+on:
+  pull_request:
+    paths:
+      - .context-engineering/governance.yml
+      - 00-os/governed-repos.yml
+      - 00-os/scripts/validate-governance-ownership.py
+      - .github/workflows/validate-governance-ownership.yml
+  push:
+    branches:
+      - main
+    paths:
+      - .context-engineering/governance.yml
+      - 00-os/governed-repos.yml
+      - 00-os/scripts/validate-governance-ownership.py
+      - .github/workflows/validate-governance-ownership.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Governance Ownership Artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml
+
+      - name: Validate governance ownership files
+        run: |
+          python3 00-os/scripts/validate-governance-ownership.py
