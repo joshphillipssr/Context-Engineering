@@ -63,7 +63,7 @@ jobs:
             };
 
             const statusByExecApproval = {
-              "Required": "status:needs-executive-sponsor-approval",
+              "Required": "status:needs-review",
               "Not-Required": "status:needs-review",
               "Provided": "status:needs-review",
             };
@@ -106,7 +106,6 @@ jobs:
               "role:implementation-specialist": "FBCA04",
               "role:systems-architect": "D93F0B",
               "status:needs-review": "FBCA04",
-              "status:needs-executive-sponsor-approval": "B60205",
             };
 
             async function ensureLabel(name) {
