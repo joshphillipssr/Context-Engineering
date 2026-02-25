@@ -1,14 +1,16 @@
-# Role Registry and Generator
+# Governance Registries and Generator
 
 ## Overview
 
 This directory contains:
 - **role-registry.yml**: Canonical source of truth for all role metadata
+- **governed-repos.yml**: Canonical source of truth for repository governance state
 - **scripts/generate-role-wiring.py**: Generator script that produces role wiring code from the registry
 
 ## Purpose
 
-Eliminates hardcoded role duplication across multiple files by generating role-specific configuration from a single registry.
+- Eliminates hardcoded role duplication across multiple files by generating role-specific configuration from a single registry.
+- Maintains a canonical registry of Context-Engineering-governed repositories and adoption state.
 
 ## Usage
 
@@ -52,6 +54,7 @@ The generator updates marked sections in:
 ## Registry Schema
 
 See `role-registry.yml` for the canonical schema and inline documentation.
+See `governed-repos.yml` for repository governance ownership state.
 
 ## Marker Format
 

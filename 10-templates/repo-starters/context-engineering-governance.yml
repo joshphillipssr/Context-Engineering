@@ -1,0 +1,25 @@
+# Governance Marker Template
+#
+# Copy to: .context-engineering/governance.yml
+# This marker declares local governance state for a target repository.
+
+schema_version: "1.0"
+repository: "<ORG>/<REPO>"
+
+governance:
+  owner_system: "Context-Engineering"
+  owner_repo: "Josh-Phillips-LLC/Context-Engineering"
+  state: "autonomous|transition|governed"
+  registry_ref: "00-os/governed-repos.yml"
+  policy_ref: "governance.md#repository-governance-adoption-model-ownership-states"
+
+controls:
+  profile: "autonomous|transition|governed"
+  required_reviews:
+    - "Compliance Officer"
+
+evidence:
+  adoption_issue: "<https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/NN>"
+  rollout_issue: "<https://github.com/Josh-Phillips-LLC/Context-Engineering/issues/NN>"
+
+last_reviewed_utc: "<YYYY-MM-DDTHH:MM:SSZ>"
