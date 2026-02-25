@@ -1,0 +1,137 @@
+name: auto-label-pr-from-metadata
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  auto-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apply canonical labels from PR metadata
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = pr.number;
+            const body = pr.body || "";
+
+            function extractValue(key) {
+              const line = body
+                .split(/\r?\n/)
+                .find((entry) => entry.trim().startsWith(key));
+              if (!line) return "";
+              return line.slice(line.indexOf(":") + 1).trim();
+            }
+
+            const primaryRole = extractValue("Primary-Role:");
+            const reviewedByRole = extractValue("Reviewed-By-Role:");
+            const executiveSponsorApproval = extractValue("Executive-Sponsor-Approval:");
+
+            const missing = [];
+            if (!primaryRole) missing.push("Primary-Role");
+            if (!reviewedByRole) missing.push("Reviewed-By-Role");
+            if (!executiveSponsorApproval) missing.push("Executive-Sponsor-Approval");
+
+            if (missing.length > 0) {
+              core.setFailed(`Missing required PR metadata value(s): ${missing.join(", ")}`);
+              return;
+            }
+
+            const roleToLabel = {
+              "Executive Sponsor": "role:executive-sponsor",
+              "AI Governance Manager": "role:ai-governance-manager",
+              "Compliance Officer": "role:compliance-officer",
+              "Business Analyst": "role:business-analyst",
+              "Implementation Specialist": "role:implementation-specialist",
+              "Systems Architect": "role:systems-architect",
+            };
+
+            const statusByExecApproval = {
+              "Required": "status:needs-executive-sponsor-approval",
+              "Not-Required": "status:needs-review",
+              "Provided": "status:needs-review",
+            };
+
+            if (!roleToLabel[primaryRole]) {
+              core.setFailed(`Invalid Primary-Role value: \"${primaryRole}\"`);
+              return;
+            }
+
+            if (reviewedByRole !== "N/A" && !roleToLabel[reviewedByRole]) {
+              core.setFailed(`Invalid Reviewed-By-Role value: \"${reviewedByRole}\"`);
+              return;
+            }
+
+            if (!statusByExecApproval[executiveSponsorApproval]) {
+              core.setFailed(`Invalid Executive-Sponsor-Approval value: \"${executiveSponsorApproval}\"`);
+              return;
+            }
+
+            const desiredRoleLabels = [
+              roleToLabel[primaryRole],
+              ...(reviewedByRole === "N/A" ? [] : [roleToLabel[reviewedByRole]]),
+            ];
+            const desiredStatusLabel = statusByExecApproval[executiveSponsorApproval];
+            const desiredLabels = [...new Set([...desiredRoleLabels, desiredStatusLabel])];
+
+            const existingLabels = (pr.labels || []).map((label) => label.name || "");
+            const existingRoleLabels = existingLabels.filter((name) => name.startsWith("role:"));
+            const existingStatusLabels = existingLabels.filter((name) => name.startsWith("status:"));
+
+            const roleLabelsToRemove = existingRoleLabels.filter((name) => !desiredRoleLabels.includes(name));
+            const statusLabelsToRemove = existingStatusLabels.filter((name) => name !== desiredStatusLabel);
+            const labelsToAdd = desiredLabels.filter((name) => !existingLabels.includes(name));
+
+            const labelColors = {
+              "role:executive-sponsor": "5319E7",
+              "role:ai-governance-manager": "0052CC",
+              "role:compliance-officer": "0E8A16",
+              "role:business-analyst": "1D76DB",
+              "role:implementation-specialist": "FBCA04",
+              "role:systems-architect": "D93F0B",
+              "status:needs-review": "FBCA04",
+              "status:needs-executive-sponsor-approval": "B60205",
+            };
+
+            async function ensureLabel(name) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name });
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+                await github.rest.issues.createLabel({
+                  owner,
+                  repo,
+                  name,
+                  color: labelColors[name] || "BFDADC",
+                });
+                core.info(`Created missing label: ${name}`);
+              }
+            }
+
+            for (const labelName of labelsToAdd) {
+              await ensureLabel(labelName);
+            }
+
+            for (const labelName of [...roleLabelsToRemove, ...statusLabelsToRemove]) {
+              await github.rest.issues.removeLabel({ owner, repo, issue_number, name: labelName });
+              core.info(`Removed label: ${labelName}`);
+            }
+
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number, labels: labelsToAdd });
+              core.info(`Added labels: ${labelsToAdd.join(", ")}`);
+            }
+
+            if (labelsToAdd.length === 0 && roleLabelsToRemove.length === 0 && statusLabelsToRemove.length === 0) {
+              core.info("Labels already canonical; no changes needed.");
+            }
