@@ -202,6 +202,26 @@ If wrapper preflight still encounters auth errors, run the re-mint helper and re
 gh-role issue develop <ISSUE_NUMBER> --checkout
 ```
 
+## Local validation tooling baseline
+
+Role workstation images include:
+
+- `python3`
+- `python3 -m pip`
+- `python3 -m venv`
+- `docker` CLI
+
+Quick checks:
+
+```bash
+python3 --version
+python3 -m pip --version
+python3 -m venv --help >/dev/null
+docker --version
+```
+
+If `docker` CLI exists but engine/socket access is unavailable in your runtime, use CI validation evidence for container-build checks and include the runtime limitation in your PR validation notes.
+
 ## Git Identity Configuration
 
 Role workstations set global Git identity automatically during container startup.
