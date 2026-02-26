@@ -2,12 +2,22 @@
 - 
 
 # Issue
-- Linked issue (must close):
-- Closes #
+- Linked issue (primary tracked issue):
+- Primary-Issue-Ref: Closes #
+- Additional issue references (optional):
+- Refs #
 
-# Issue-Backed Branching (Required)
-- [ ] Branch created via `gh issue develop <ISSUE_NUMBER> --checkout`
-- [ ] PR description links and closes the Issue (example: `Closes #<ISSUE_NUMBER>`)
+# Issue Linkage (Outcome-Based, Required)
+- [ ] Exactly one primary tracked issue is declared using `Primary-Issue-Ref: Closes #<ISSUE_NUMBER>` or `Primary-Issue-Ref: Refs #<ISSUE_NUMBER>`
+- [ ] Primary issue shows this PR in GitHub Development before merge, or an explicit exception with compensating evidence is documented
+- [ ] `gh issue develop <ISSUE_NUMBER> --checkout` was used where practical (recommended, not mandatory)
+
+# Development Linkage Evidence (Required)
+- Development-Linkage: Verified
+- Development-Linkage-Evidence:
+- If exception is required instead of verified linkage:
+  - Development-Linkage: Exception
+  - Development-Linkage-Evidence: <why linkage is blocked + compensating evidence>
 
 # Machine-Readable Metadata (Required)
 Primary-Role: Implementation Specialist

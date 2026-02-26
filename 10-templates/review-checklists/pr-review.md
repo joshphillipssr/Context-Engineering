@@ -1,9 +1,9 @@
 # PR Review Checklist (Deterministic)
 
 ## Blockers (Must Pass)
-- [ ] PR description includes all three exact metadata keys (Primary-Role:, Reviewed-By-Role:, Executive-Sponsor-Approval:)
-- [ ] PR description links and closes the Issue (example: `Closes #<ISSUE_NUMBER>`)
-- [ ] Branch was created via `gh issue develop <ISSUE_NUMBER> --checkout` (confirm via PR template)
+- [ ] PR description includes required role metadata keys (Primary-Role:, Reviewed-By-Role:, Executive-Sponsor-Approval:)
+- [ ] PR description declares exactly one primary tracked issue using `Primary-Issue-Ref: Closes #<ISSUE_NUMBER>` or `Primary-Issue-Ref: Refs #<ISSUE_NUMBER>`
+- [ ] Development linkage requirement is satisfied: `Development-Linkage: Verified`, or `Development-Linkage: Exception` with compensating evidence
 - [ ] At least one role label exists (role:implementation-specialist / role:compliance-officer / role:ai-governance-manager / role:business-analyst / role:executive-sponsor)
 - [ ] Exactly one status:* label exists
 - [ ] No legacy role terms used in metadata/labels (CEO, Director of AI Context, role:CEO, CEO-Approval)
