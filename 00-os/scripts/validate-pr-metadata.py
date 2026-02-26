@@ -41,11 +41,54 @@ def parse_args() -> argparse.Namespace:
 
 
 def extract_field_value(body: str, field_name: str) -> str:
-    pattern = rf"^\s*{re.escape(field_name)}\s*:\s*(.*?)\s*$"
+    pattern = rf"^\s*(?:-\s*)?{re.escape(field_name)}\s*:\s*(.*?)\s*$"
     match = re.search(pattern, body, flags=re.MULTILINE)
     if not match:
         return ""
     return match.group(1).strip()
+
+
+def validate_primary_issue_ref(body: str) -> List[str]:
+    errors: List[str] = []
+    field_value = extract_field_value(body, "Primary-Issue-Ref")
+
+    if not field_value:
+        errors.append(
+            "Missing required field 'Primary-Issue-Ref'. Add exactly one primary issue reference using 'Primary-Issue-Ref: Closes #<ISSUE_NUMBER>' or 'Primary-Issue-Ref: Refs #<ISSUE_NUMBER>'."
+        )
+        return errors
+
+    if not re.fullmatch(r"(Closes|Refs)\s+#\d+", field_value):
+        errors.append(
+            "Invalid 'Primary-Issue-Ref' format. Use exactly one value in the form 'Closes #<ISSUE_NUMBER>' or 'Refs #<ISSUE_NUMBER>'."
+        )
+
+    return errors
+
+
+def validate_development_linkage(body: str) -> List[str]:
+    errors: List[str] = []
+    linkage_status = extract_field_value(body, "Development-Linkage")
+    linkage_evidence = extract_field_value(body, "Development-Linkage-Evidence")
+
+    if not linkage_status:
+        errors.append(
+            "Missing required field 'Development-Linkage'. Set it to 'Verified' or 'Exception'."
+        )
+        return errors
+
+    if linkage_status not in {"Verified", "Exception"}:
+        errors.append(
+            "Invalid 'Development-Linkage' value. Allowed: Verified | Exception."
+        )
+        return errors
+
+    if not linkage_evidence:
+        errors.append(
+            "Missing required field 'Development-Linkage-Evidence'. Provide evidence of Issue Development linkage or, when using Exception, document why linkage is blocked and the compensating evidence."
+        )
+
+    return errors
 
 
 def validate(body: str) -> List[str]:
@@ -65,6 +108,9 @@ def validate(body: str) -> List[str]:
             errors.append(
                 f"Invalid value for '{field_name}': '{field_value}'. Allowed: {allowed}."
             )
+
+    errors.extend(validate_primary_issue_ref(body))
+    errors.extend(validate_development_linkage(body))
 
     return errors
 

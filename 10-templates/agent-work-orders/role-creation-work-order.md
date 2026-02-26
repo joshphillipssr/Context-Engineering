@@ -187,17 +187,23 @@ Use checkboxes. Keep these binary.
   - `Primary-Role: Implementation Specialist`
   - `Reviewed-By-Role: Compliance Officer`
   - `Executive-Sponsor-Approval: Required` if protected artifacts are touched, otherwise `Not-Required`
-- Link and close the Issue in the PR description (example: `Closes #<ISSUE_NUMBER>`)
+- Declare exactly one primary tracked issue in the PR description using:
+  - `Primary-Issue-Ref: Closes #<ISSUE_NUMBER>` when fully resolving, or
+  - `Primary-Issue-Ref: Refs #<ISSUE_NUMBER>` when related/non-closing
+- Provide Development linkage evidence before merge:
+  - `Development-Linkage: Verified`, or
+  - `Development-Linkage: Exception` with `Development-Linkage-Evidence:` documenting blockage + compensating evidence
 - Apply labels:
   - `role:implementation-specialist`
   - exactly one `status:*` label
 - Do not merge the PR
 
 ### Branching (Required)
-Create a fresh branch for the Issue using GitHub CLI default naming.
-Manual `git checkout -b` is not allowed for Issue-driven work.
+Create a fresh branch for the Issue.
+Use `gh issue develop <ISSUE_NUMBER> --checkout` as the recommended best-practice path.
+Alternate GitHub-native branch/linkage paths are allowed when the PR satisfies required primary-issue and Development linkage evidence fields.
 
-Required commands (example):
+Recommended commands (example):
 ```bash
 gh issue develop <ISSUE_NUMBER> --checkout
 git branch --show-current
