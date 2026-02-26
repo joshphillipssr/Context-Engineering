@@ -4,6 +4,12 @@ This document defines the canonical Architecture Decision Record (ADR) schema an
 
 This specification is normative for issue #66.
 
+## Related ADR Authoring Artifacts
+
+- Template: `00-os/adr/0000-template.md`
+- Starter ADR: `00-os/adr/0001-record-architecture-decisions.md`
+- Authoring guide: `00-os/adr/AUTHORING.md`
+
 ## 1. Canonical Location and Naming
 
 - ADR files MUST live under `00-os/adr/`.

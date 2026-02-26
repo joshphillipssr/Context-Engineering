@@ -35,6 +35,7 @@
 - Prefer templates and checklists over prose.
 - Add TODOs when judgment is required.
 - Keep Plane A/Plane B separation intact.
+- For architecture decisions, use ADR artifacts in `00-os/adr/` and follow `00-os/adr/AUTHORING.md`.
 
 ## Artifact Flow
 - Session Canvas → Publishable Extract → Repo Canvas
