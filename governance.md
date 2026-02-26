@@ -402,6 +402,31 @@ Required evidence:
 - Executive Sponsor approval recorded for protected-path adoption changes
 - Role-instruction contract verified for role repos (if applicable)
 
+#### Governed main-branch enforcement baseline
+
+For repositories in `governed` state, default branch controls must enforce at minimum:
+
+- Pull-request-only merge path for routine changes.
+- Required status checks aligned to governance/compliance gates.
+- Strict status checks enabled (head branch must be up to date before merge).
+- At least one approving review.
+- Code owner review for protected governance paths.
+- Conversation resolution required before merge.
+- Force pushes and branch deletion disabled.
+
+For `Josh-Phillips-LLC/Context-Engineering`, required checks on `main` are:
+
+- `Analyze (actions)`
+- `Analyze (python)`
+- `Validate machine-readable PR metadata`
+- `CodeQL`
+
+Emergency override policy:
+
+- Break-glass override is retained for the Executive Sponsor via administrator bypass path.
+- Any override use requires an explicit PR comment stating rationale and timestamp before merge.
+- A follow-up audit issue must be opened immediately after override merge to capture corrective action.
+
 ### Offboarding / de-governance workflow (`governed -> transition|autonomous`)
 
 1. Open protected de-governance issue in `Context-Engineering` with rationale, risk impact, and rollback plan.
