@@ -10,6 +10,12 @@ Thanks for helping improve Context-Engineering. Please keep changes scoped and r
 4. Open a PR that declares the primary Issue with `Closes #<ISSUE_NUMBER>` or `Refs #<ISSUE_NUMBER>` and includes required role metadata.
 5. Ensure the primary Issue shows PR linkage in GitHub Development before merge (or document an explicit exception with compensating evidence in the PR).
 
+## Architecture Decisions (ADR)
+
+- Author architecture-level decisions under `00-os/adr/`.
+- Use the ADR template at `00-os/adr/0000-template.md`.
+- Follow authoring guidance at `00-os/adr/AUTHORING.md`.
+
 ## Safety and Scope
 
 - Do not include secrets, tokens, credentials, PII, or internal hostnames.

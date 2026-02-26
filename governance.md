@@ -201,6 +201,8 @@ All meaningful changes in this repo should be **reviewable**. The default workfl
 - Reduce “random walk” documentation
 - Provide a clear contract between agents and reviewers
 
+For architecture-level decisions, use ADR artifacts under `00-os/adr/` and the authoring guide at `00-os/adr/AUTHORING.md`.
+
 ### Default workflow
 1. **Create an Issue** (Executive Sponsor, AI Governance Manager, Business Analyst, or Implementation Specialist) defining: objective, scope, constraints, and definition of done
 2. **Create a branch and link it to the primary Issue** using any valid GitHub path that preserves deterministic linkage (recommended: `gh issue develop <ISSUE_NUMBER> --checkout`) (role occupant)
