@@ -9,7 +9,7 @@ RUN set -eux; \
       if apt-get ${APT_OPTIONS} update && \
          apt-get ${APT_OPTIONS} install -y --no-install-recommends \
            git curl ca-certificates openssh-client gnupg jq unzip \
-           poppler-utils mupdf-tools python3; then \
+           poppler-utils mupdf-tools python3 python3-pip python3-venv docker.io; then \
         break; \
       fi; \
       if [ "${attempt}" -eq 5 ]; then \

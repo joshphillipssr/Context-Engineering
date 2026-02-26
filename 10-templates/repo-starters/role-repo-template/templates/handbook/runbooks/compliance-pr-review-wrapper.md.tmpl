@@ -9,6 +9,11 @@ You need deterministic, app-attributed PR review events for Compliance Officer a
 1. Ensure you are in role-app auth mode and avoid PAT overrides.
 2. Use `scripts/co-pr-review.sh` instead of direct `gh pr review`.
 3. Provide one review mode only: `--approve`, `--request-changes`, or `--comment`.
+4. For report drafting, prefer:
+
+```bash
+scripts/co-pr-review-report.sh --repo <owner/repo> --pr <pr-number>
+```
 
 ## Standard Commands
 
@@ -59,3 +64,4 @@ env -u GH_TOKEN -u GITHUB_TOKEN gh pr view 176 -R Josh-Phillips-LLC/Context-Engi
 ## Post-Incident Follow-up
 
 - If mismatch repeats, file or append an `efficiency-opportunity` issue with evidence and exact command output.
+- For re-review cycles after requested changes, run `handbook/runbooks/compliance-rereview-after-changes.md`.
