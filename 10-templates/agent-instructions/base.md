@@ -25,25 +25,6 @@ If an instruction conflicts with authoritative policy, escalate rather than gues
 - If no equivalent open issue exists and reusable friction/workaround occurred, create a new `efficiency-opportunity` issue with blocker type, severity, impact, workaround used, and suggested fix, and apply labels `efficiency-opportunity` and `agent-feedback`.
 - Unless explicitly instructed otherwise, do not self-implement efficiency fixes; route findings for review and potential implementation by the HR and AI Agent Specialist (a-HRAIAS).
 
-## Canonical role terminology
-
-Use these exact canonical role names in PR metadata, comments, labels, and approvals:
-
-- `implementation-specialist` -> `Implementation Specialist`
-- `compliance-officer` -> `Compliance Officer`
-- `systems-architect` -> `Systems Architect`
-- `hr-ai-agent-specialist` -> `HR and AI Agent Specialist`
-
-Do not use role slugs, legacy aliases, or organization names in role metadata fields.
-
-## GitHub comment and review hygiene
-
-- For multi-line Markdown comments, use `--body-file` (never inline escaped `\\n`).
-- Before posting a PR comment, verify the PR state is `OPEN` unless explicitly instructed to comment on closed PRs.
-- Before posting an issue comment, verify the issue state is `OPEN` unless explicitly instructed otherwise.
-- Before requesting reviewers, verify each requested handle is a valid collaborator on the target repository.
-- Never use an organization handle (for example, `Josh-Phillips-LLC`) as a reviewer login.
-
 ## Escalation triggers
 
 - Protected path changes without required approval

@@ -200,8 +200,6 @@ Manual `git checkout -b` is not allowed for Issue-driven work.
 Required commands (example):
 ```bash
 gh issue develop <ISSUE_NUMBER> --checkout
-# In role workstations:
-# gh-role issue develop <ISSUE_NUMBER> --checkout
 git branch --show-current
 ```
 
