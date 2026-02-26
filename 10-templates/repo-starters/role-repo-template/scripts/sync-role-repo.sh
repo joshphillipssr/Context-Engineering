@@ -48,17 +48,11 @@ Notes:
     - .github/pull_request_template.md
     - .github/workflows/governance-pr-gates.yml
     - .vscode/settings.json
-    - scripts/bootstrap-governance-labels.sh
-    - scripts/gh-safe-comment.sh
-    - scripts/request-pr-review.sh
     - scripts/validate-pr-metadata.py
     - handbook/README.md
     - handbook/sops/README.md
     - handbook/sops/general-process-improvement-loop.md
     - handbook/runbooks/README.md
-    - handbook/runbooks/general-governance-label-bootstrap.md
-    - handbook/runbooks/general-github-commenting.md
-    - handbook/runbooks/general-reviewer-request-preflight.md
     - handbook/templates/README.md
     - handbook/templates/general-efficiency-opportunity.md
     - handbook/references/README.md
@@ -178,17 +172,11 @@ managed_files=(
   ".github/pull_request_template.md"
   ".github/workflows/governance-pr-gates.yml"
   ".vscode/settings.json"
-  "scripts/bootstrap-governance-labels.sh"
-  "scripts/gh-safe-comment.sh"
-  "scripts/request-pr-review.sh"
   "scripts/validate-pr-metadata.py"
   "handbook/README.md"
   "handbook/sops/README.md"
   "handbook/sops/general-process-improvement-loop.md"
   "handbook/runbooks/README.md"
-  "handbook/runbooks/general-governance-label-bootstrap.md"
-  "handbook/runbooks/general-github-commenting.md"
-  "handbook/runbooks/general-reviewer-request-preflight.md"
   "handbook/templates/README.md"
   "handbook/templates/general-efficiency-opportunity.md"
   "handbook/references/README.md"
@@ -197,10 +185,7 @@ managed_files=(
 if [ "$ROLE_SLUG" = "compliance-officer" ]; then
   managed_files+=(
     "scripts/co-pr-review.sh"
-    "scripts/co-pr-review-report.sh"
     "handbook/runbooks/compliance-pr-review-wrapper.md"
-    "handbook/runbooks/compliance-rereview-after-changes.md"
-    "handbook/templates/compliance-pr-review-report.md"
   )
 fi
 
