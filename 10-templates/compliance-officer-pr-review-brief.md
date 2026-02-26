@@ -73,6 +73,10 @@ Verify that the PR:
 
 - Introduces **no secrets, tokens, internal hostnames, or personal data**
 - Does **not modify protected files** without explicit intent and justification
+- Declares ADR applicability for architecture/protected decisions (`ADR-Required: Yes|No`)
+- If ADR is required, includes `Primary-ADR` and `ADR-Status-At-Merge: Accepted|Exception`
+- If ADR status is `Exception`, includes explicit compensating evidence and Executive Sponsor approval signal
+- If replacing a decision, includes supersession traceability in PR metadata and reciprocal ADR metadata updates
 - Does **not introduce new top-level folders** without instruction
 - Keeps changes **scoped to the PR’s stated objective**
 - Prefers **templates and checklists over long prose**
