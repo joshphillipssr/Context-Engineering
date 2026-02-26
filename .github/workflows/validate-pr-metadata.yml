@@ -30,5 +30,13 @@ jobs:
           printf '%s\n' "${PR_BODY:-}" > /tmp/pr-body.md
 
       - name: Validate PR metadata fields and enums
+        env:
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 00-os/scripts/validate-pr-metadata.py --input-file /tmp/pr-body.md
+          python3 00-os/scripts/validate-pr-metadata.py \
+            --input-file /tmp/pr-body.md \
+            --repo "${REPO}" \
+            --pr-number "${PR_NUMBER}" \
+            --github-token "${GITHUB_TOKEN}"

@@ -72,15 +72,21 @@ State the exact PR title and any required PR-body summary.
 
 - Open a PR titled: `Implementation Specialist: <short title>`
 - Include a short summary mapping changes to Acceptance Criteria
-- Link and close the Issue in the PR description (example: `Closes #<ISSUE_NUMBER>`)
+- Declare exactly one primary tracked issue in the PR description using:
+  - `Primary-Issue-Ref: Closes #<ISSUE_NUMBER>` when fully resolving, or
+  - `Primary-Issue-Ref: Refs #<ISSUE_NUMBER>` when related/non-closing
+- Provide Development linkage evidence before merge:
+  - `Development-Linkage: Verified`, or
+  - `Development-Linkage: Exception` with `Development-Linkage-Evidence:` documenting blockage + compensating evidence
 - Apply labels (canonical `gh` commands in `governance.md` are optional examples)
 - Do not merge the PR
 
 ### Branching (Required)
-The Implementation Specialist must create a fresh branch for each Issue using GitHub CLI default naming. Do not reuse existing branches.
-Manual `git checkout -b` is not allowed for Issue-driven work.
+The Implementation Specialist must create a fresh branch for each Issue. Do not reuse existing branches.
+Use `gh issue develop <ISSUE_NUMBER> --checkout` as the recommended best-practice path.
+Alternate GitHub-native branch/linkage paths are allowed when the PR satisfies required primary-issue and Development linkage evidence fields.
 
-Required commands (example):
+Recommended commands (example):
 ```bash
 gh issue develop <ISSUE_NUMBER> --checkout
 # In role workstations:
