@@ -2,6 +2,19 @@
 
 Start here for a link-first map of the repo. This supplements README.
 
+## Split status
+
+Effective 2026-02-26 (ADR 0002), canonical sources moved to split repositories:
+
+- Governance authority: [`Josh-Phillips-LLC/context-engineering-governance`](https://github.com/Josh-Phillips-LLC/context-engineering-governance)
+- Implementation/tooling authority: [`Josh-Phillips-LLC/context-engineering-implementation`](https://github.com/Josh-Phillips-LLC/context-engineering-implementation)
+
+Legacy mixed-layout cutover references in this repo:
+
+- [REPOSITORY_SOURCE_OF_TRUTH_MAP.md](REPOSITORY_SOURCE_OF_TRUTH_MAP.md)
+- [MIXED_LAYOUT_DEPRECATION_NOTICE.md](MIXED_LAYOUT_DEPRECATION_NOTICE.md)
+- [00-os/runbooks/split-repository-cutover-and-rollback.md](00-os/runbooks/split-repository-cutover-and-rollback.md)
+
 ## Core entry points
 
 - [README.md](README.md) - Narrative overview and usage.

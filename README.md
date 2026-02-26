@@ -2,7 +2,24 @@
 
 # Context-Engineering
 
-This repository is the **governance and control-plane system of record** for how AI context is designed, curated, reviewed, and published across Josh's projects.
+## Split Status (ADR 0002)
+
+Effective **2026-02-26**, this repository is a **legacy mixed-layout coordination repo** during deprecation.
+
+Canonical source-of-truth repositories are now:
+
+- Governance policy authority: [`Josh-Phillips-LLC/context-engineering-governance`](https://github.com/Josh-Phillips-LLC/context-engineering-governance)
+- Implementation/tooling authority: [`Josh-Phillips-LLC/context-engineering-implementation`](https://github.com/Josh-Phillips-LLC/context-engineering-implementation)
+
+Use these cutover references before making changes:
+
+- [`REPOSITORY_SOURCE_OF_TRUTH_MAP.md`](./REPOSITORY_SOURCE_OF_TRUTH_MAP.md)
+- [`MIXED_LAYOUT_DEPRECATION_NOTICE.md`](./MIXED_LAYOUT_DEPRECATION_NOTICE.md)
+- [`00-os/runbooks/split-repository-cutover-and-rollback.md`](./00-os/runbooks/split-repository-cutover-and-rollback.md)
+
+---
+
+This repository defines how AI context is designed, curated, reviewed, and published across Josh's projects.
 
 It defines **how humans and AI collaborate**, not just what tools are used. Tools are replaceable; **context structure is not**.
 
@@ -11,11 +28,12 @@ It defines **how humans and AI collaborate**, not just what tools are used. Tool
 ## What this repo is (and is not)
 
 ### This repo **is**
-- The authoritative source for:
-  - AI operating models (roles, workflows, guardrails)
-  - Context design patterns
-  - Prompt and review templates
-  - Session canvases and publication records
+- A legacy transition workspace for mixed-layout artifacts that are being deprecated per ADR 0002
+- A historical reference for:
+  - prior AI operating model artifacts
+  - context design patterns
+  - prompt and review templates
+  - session canvases and publication records
 - A public-safe governance repository that documents both Plane A and Plane B practices
 - Designed to be durable across:
   - VS Code Copilot
