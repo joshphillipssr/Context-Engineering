@@ -1,0 +1,6 @@
+# Context-Engineering protected governance surfaces.
+# Any changes to these paths require code owner review.
+
+/governance.md @joshphillipssr
+/context-flow.md @joshphillipssr
+/00-os/** @joshphillipssr
