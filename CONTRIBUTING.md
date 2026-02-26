@@ -5,9 +5,10 @@ Thanks for helping improve Context-Engineering. Please keep changes scoped and r
 ## How to Contribute
 
 1. Open or reference an Issue that defines objective, scope, and definition of done.
-2. Create a branch from the Issue using `gh issue develop <ISSUE_NUMBER> --checkout`.
+2. Create a branch linked to the primary Issue using any valid GitHub path (recommended: `gh issue develop <ISSUE_NUMBER> --checkout`).
 3. Make focused edits and avoid unrelated refactors.
-4. Open a PR that links/closes the Issue and includes required role metadata.
+4. Open a PR that declares the primary Issue with `Closes #<ISSUE_NUMBER>` or `Refs #<ISSUE_NUMBER>` and includes required role metadata.
+5. Ensure the primary Issue shows PR linkage in GitHub Development before merge (or document an explicit exception with compensating evidence in the PR).
 
 ## Safety and Scope
 
