@@ -8,7 +8,8 @@ Thanks for helping improve Context-Engineering. Please keep changes scoped and r
 2. Create a branch linked to the primary Issue using any valid GitHub path (recommended: `gh issue develop <ISSUE_NUMBER> --checkout`).
 3. Make focused edits and avoid unrelated refactors.
 4. Open a PR that declares the primary Issue with `Closes #<ISSUE_NUMBER>` or `Refs #<ISSUE_NUMBER>` and includes required role metadata.
-5. Ensure the primary Issue shows PR linkage in GitHub Development before merge (or document an explicit exception with compensating evidence in the PR).
+5. For architecture/protected changes, include ADR linkage fields in the PR body (`ADR-Required`, `Primary-ADR`, `ADR-Status-At-Merge`, and supersession traceability when applicable).
+6. Ensure the primary Issue shows PR linkage in GitHub Development before merge (or document an explicit exception with compensating evidence in the PR).
 
 ## Architecture Decisions (ADR)
 
@@ -30,6 +31,12 @@ Thanks for helping improve Context-Engineering. Please keep changes scoped and r
   - `Primary-Role`
   - `Reviewed-By-Role`
   - `Executive-Sponsor-Approval`
+- Compliance review enforces ADR linkage fields for architecture/protected decisions:
+  - `ADR-Required`
+  - `Primary-ADR`
+  - `ADR-Status-At-Merge`
+  - `ADR-Supersession-Traceability` (when replacing decisions)
+
 ## Agent Efficiency Feedback Workflow
 
 Agent-scoped workflows are designed to discover and surface friction points for continuous improvement.
