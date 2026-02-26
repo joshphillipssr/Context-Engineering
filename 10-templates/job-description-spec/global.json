@@ -6,7 +6,7 @@
   ],
   "required_workflow": [
     "Follow the issue-first workflow: Issue -> branch -> PR -> review -> merge.",
-    "Create issue branches with `gh issue develop <ISSUE_NUMBER> --checkout`.",
+    "Create issue branches with `gh issue develop <ISSUE_NUMBER> --checkout` (inside role workstations, prefer `gh-role issue develop <ISSUE_NUMBER> --checkout`).",
     "Apply role attribution metadata and required status labels on PRs.",
     "Keep changes minimal, scoped, and reversible.",
     "After each substantive task, run a brief efficiency reflection: 'How could this have been more efficient?'.",

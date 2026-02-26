@@ -87,6 +87,19 @@ Runbooks provide step-by-step procedures for:
 
 **Related artifacts:** `00-os/governed-repos.yml`, `.context-engineering/governance.yml`, `00-os/scripts/validate-governance-ownership.py`
 
+### [Governance Label Bootstrap](./governance-label-bootstrap.md)
+
+**When to use:** Repository lacks canonical governance labels (`role:*`, `status:*`) required by review/label workflows
+
+**Scope:** Any repo entering governance adoption or receiving governance-driven PR review actions
+
+**Key processes:**
+- Deterministic and idempotent canonical label creation
+- Preflight readiness before role/status label operations
+- Post-bootstrap verification of required label set
+
+**Related script:** `00-os/scripts/bootstrap-governance-labels.sh`
+
 ---
 
 ## Runbook Standards

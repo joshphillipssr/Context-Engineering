@@ -2,7 +2,7 @@
 
 ## Default Workflow (Reviewable Changes)
 1. **Issue**: Objective, scope, constraints, definition of done
-2. **Branch (required)**: Create from the Issue via `gh issue develop <ISSUE_NUMBER> --checkout`
+2. **Branch (required)**: Create from the Issue via `gh issue develop <ISSUE_NUMBER> --checkout` (or `gh-role issue develop <ISSUE_NUMBER> --checkout` inside role workstations)
 3. **Implementation**: Focused edits with minimal scope and role-attributed commit messages
 4. **Pull Request**: Use templates + include machine-readable PR metadata (`Primary-Role` / `Reviewed-By-Role` / `Executive-Sponsor-Approval`) and link/close the Issue (example: `Closes #<ISSUE_NUMBER>`)
 5. **Labels**: Apply required PR labels (at least one `role:*` label + exactly one `status:*` label) using GitHub UI, API/automation, or `gh` immediately after PR creation
@@ -11,7 +11,7 @@
 
 ## Required Rules
 - Every PR must map to an existing Issue.
-- Branch creation for Issue work must use `gh issue develop <ISSUE_NUMBER> --checkout` (no manual `git checkout -b`).
+- Branch creation for Issue work must use `gh issue develop <ISSUE_NUMBER> --checkout` (inside role workstations, prefer `gh-role issue develop <ISSUE_NUMBER> --checkout`; no manual `git checkout -b`).
 - Issues must define objective, scope, constraints, and definition of done.
 
 ## Issue/PR Triage
