@@ -50,3 +50,15 @@ For historical architecture decisions recorded only in issues/PRs:
 
 - Compliance Officer review is required for ADR conformance.
 - Executive Sponsor approval is required before merge when ADR status/impact triggers protected-change gates.
+
+## 7. Local Validation
+
+Run ADR validation before opening or updating PRs:
+
+- `python3 00-os/scripts/validate-adr.py --path 00-os/adr --strict --exclude-glob '00-os/adr/_fixtures/**' --exclude-glob '00-os/adr/README.md' --exclude-glob '00-os/adr/AUTHORING.md' --exclude-glob '00-os/adr/0000-template.md'`
+
+Exit codes:
+
+- `0`: pass
+- `1`: conformance failures
+- `2`: runtime/invocation error
