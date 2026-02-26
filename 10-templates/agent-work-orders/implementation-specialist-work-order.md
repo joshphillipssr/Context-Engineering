@@ -89,6 +89,8 @@ Alternate GitHub-native branch/linkage paths are allowed when the PR satisfies r
 Recommended commands (example):
 ```bash
 gh issue develop <ISSUE_NUMBER> --checkout
+# In role workstations:
+# gh-role issue develop <ISSUE_NUMBER> --checkout
 ```
 
 Before committing, Copilot must verify it is on the correct branch:
