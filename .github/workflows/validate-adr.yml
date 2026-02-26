@@ -1,0 +1,113 @@
+name: Validate ADR Artifacts
+
+on:
+  pull_request:
+    paths:
+      - '00-os/adr/**'
+      - '00-os/adr-fixtures/**'
+      - '00-os/scripts/validate-adr.py'
+      - '.github/workflows/validate-adr.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - '00-os/adr/**'
+      - '00-os/adr-fixtures/**'
+      - '00-os/scripts/validate-adr.py'
+      - '.github/workflows/validate-adr.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate ADR Conformance
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate repository ADRs
+        run: |
+          python3 00-os/scripts/validate-adr.py \
+            --path 00-os/adr \
+            --strict \
+            --exclude-glob '00-os/adr/_fixtures/**' \
+            --exclude-glob '00-os/adr/README.md' \
+            --exclude-glob '00-os/adr/AUTHORING.md' \
+            --exclude-glob '00-os/adr/0000-template.md'
+
+      - name: Validate ADR fixtures (valid suite must pass)
+        run: |
+          python3 00-os/scripts/validate-adr.py \
+            --path 00-os/adr/_fixtures/valid \
+            --strict
+
+      - name: Validate ADR fixtures (invalid suite must fail)
+        run: |
+          set +e
+          python3 00-os/scripts/validate-adr.py \
+            --path 00-os/adr/_fixtures/invalid \
+            --strict
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "Expected invalid fixtures to fail validation, but validator returned 0."
+            exit 1
+          fi
+          if [ "$code" -eq 2 ]; then
+            echo "Validator runtime/invocation error (exit 2)."
+            exit 2
+          fi
+
+      - name: Validate ADR invalid-path fixture (must fail)
+        run: |
+          set +e
+          python3 00-os/scripts/validate-adr.py \
+            --path 00-os/adr-fixtures/invalid-path/0005-wrong-location.md \
+            --strict
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "Expected invalid-path fixture to fail ADR001, but validator returned 0."
+            exit 1
+          fi
+          if [ "$code" -eq 2 ]; then
+            echo "Validator runtime/invocation error (exit 2)."
+            exit 2
+          fi
+
+      - name: Validate ADR transitions (valid transitions)
+        run: |
+          python3 00-os/scripts/validate-adr.py \
+            --path 00-os/adr/_fixtures/transitions/valid/after \
+            --check-transitions \
+            --before 00-os/adr/_fixtures/transitions/valid/before \
+            --after 00-os/adr/_fixtures/transitions/valid/after \
+            --strict
+
+      - name: Validate ADR transitions (invalid transitions must fail)
+        run: |
+          set +e
+          python3 00-os/scripts/validate-adr.py \
+            --path 00-os/adr/_fixtures/transitions/after \
+            --check-transitions \
+            --before 00-os/adr/_fixtures/transitions/before \
+            --after 00-os/adr/_fixtures/transitions/after \
+            --strict
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "Expected invalid transition fixtures to fail, but validator returned 0."
+            exit 1
+          fi
+          if [ "$code" -eq 2 ]; then
+            echo "Validator runtime/invocation error (exit 2)."
+            exit 2
+          fi

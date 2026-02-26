@@ -118,3 +118,23 @@ Recommended rule IDs for deterministic output:
 - `ADR007`: supersession target missing/invalid
 - `ADR008`: reciprocal supersession mismatch
 - `ADR009`: invalid status transition
+
+## 8. Validator CLI and Exit Codes
+
+Canonical validator script:
+
+- `python3 00-os/scripts/validate-adr.py --path <DIR_OR_FILE>`
+
+Supported options:
+
+- `--strict`
+- `--json`
+- `--check-transitions --before <DIR> --after <DIR>`
+- `--include-glob '<pattern>'`
+- `--exclude-glob '<pattern>'`
+
+Exit code contract:
+
+- `0`: validation passed
+- `1`: one or more conformance violations
+- `2`: invocation/runtime error
