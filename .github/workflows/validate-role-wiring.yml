@@ -5,6 +5,7 @@ on:
     paths:
       - 00-os/role-registry.yml
       - 00-os/scripts/generate-role-wiring.py
+      - 00-os/scripts/tests/test_generate_role_wiring.py
       - .github/workflows/sync-role-repos.yml
       - .github/workflows/publish-role-workstation-images.yml
       - .devcontainer-workstation/docker-compose.yml
@@ -16,6 +17,7 @@ on:
     paths:
       - 00-os/role-registry.yml
       - 00-os/scripts/generate-role-wiring.py
+      - 00-os/scripts/tests/test_generate_role_wiring.py
       - .github/workflows/sync-role-repos.yml
       - .github/workflows/publish-role-workstation-images.yml
       - .devcontainer-workstation/docker-compose.yml
@@ -45,3 +47,7 @@ jobs:
       - name: Validate generated files
         run: |
           python3 00-os/scripts/generate-role-wiring.py --check
+
+      - name: Run role wiring unit tests
+        run: |
+          python3 -m unittest discover -s 00-os/scripts/tests -p 'test_*.py'
