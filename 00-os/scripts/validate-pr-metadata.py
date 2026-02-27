@@ -103,7 +103,7 @@ def query_issue_pr_linkage(
 ) -> Tuple[bool, bool]:
     owner, repo_name = repo.split("/", 1)
     query = """
-query($owner: String!, $name: String!, $prNumber: Int!, $issueNumber: Int!) {
+query($owner: String!, $name: String!, $prNumber: Int!, $issueNumber: Int!, $timelineCursor: String) {
   repository(owner: $owner, name: $name) {
     pullRequest(number: $prNumber) {
       closingIssuesReferences(first: 100) {
@@ -113,7 +113,7 @@ query($owner: String!, $name: String!, $prNumber: Int!, $issueNumber: Int!) {
       }
     }
     issue(number: $issueNumber) {
-      timelineItems(last: 100, itemTypes: [CROSS_REFERENCED_EVENT, CONNECTED_EVENT]) {
+      timelineItems(first: 100, after: $timelineCursor, itemTypes: [CROSS_REFERENCED_EVENT, CONNECTED_EVENT]) {
         nodes {
           __typename
           ... on CrossReferencedEvent {
@@ -133,61 +133,84 @@ query($owner: String!, $name: String!, $prNumber: Int!, $issueNumber: Int!) {
             }
           }
         }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
       }
     }
   }
 }
 """
-    payload = {
-        "query": query,
-        "variables": {
-            "owner": owner,
-            "name": repo_name,
-            "prNumber": pr_number,
-            "issueNumber": issue_number,
-        },
-    }
-    request = urllib.request.Request(
-        "https://api.github.com/graphql",
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {github_token}",
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        },
-    )
-    with urllib.request.urlopen(request, timeout=20) as response:
-        document = json.load(response)
-
-    if "errors" in document:
-        raise RuntimeError(f"GraphQL errors: {document['errors']}")
-
-    repository = document.get("data", {}).get("repository", {})
-    pull_request = repository.get("pullRequest", {}) or {}
-    issue = repository.get("issue", {}) or {}
-
-    closing_numbers = {
-        node.get("number")
-        for node in pull_request.get("closingIssuesReferences", {}).get("nodes", [])
-    }
-    closes_primary_issue = issue_number in closing_numbers
-
+    timeline_cursor: Optional[str] = None
+    closes_primary_issue = False
     development_linked = False
-    for node in issue.get("timelineItems", {}).get("nodes", []):
-        typename = node.get("__typename")
-        if typename == "CrossReferencedEvent":
-            source = node.get("source") or {}
-            if source.get("__typename") == "PullRequest" and source.get("number") == pr_number:
-                development_linked = True
-                break
-        if typename == "ConnectedEvent":
-            subject = node.get("subject") or {}
-            if (
-                subject.get("__typename") == "PullRequest"
-                and subject.get("number") == pr_number
-            ):
-                development_linked = True
-                break
+
+    while True:
+        payload = {
+            "query": query,
+            "variables": {
+                "owner": owner,
+                "name": repo_name,
+                "prNumber": pr_number,
+                "issueNumber": issue_number,
+                "timelineCursor": timeline_cursor,
+            },
+        }
+        request = urllib.request.Request(
+            "https://api.github.com/graphql",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {github_token}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+        )
+        with urllib.request.urlopen(request, timeout=20) as response:
+            document = json.load(response)
+
+        if "errors" in document:
+            raise RuntimeError(f"GraphQL errors: {document['errors']}")
+
+        repository = document.get("data", {}).get("repository", {})
+        pull_request = repository.get("pullRequest", {}) or {}
+        issue = repository.get("issue", {}) or {}
+
+        closing_numbers = {
+            node.get("number")
+            for node in pull_request.get("closingIssuesReferences", {}).get("nodes", [])
+        }
+        closes_primary_issue = issue_number in closing_numbers
+
+        timeline_items = issue.get("timelineItems", {}) or {}
+        for node in timeline_items.get("nodes", []):
+            typename = node.get("__typename")
+            if typename == "CrossReferencedEvent":
+                source = node.get("source") or {}
+                if (
+                    source.get("__typename") == "PullRequest"
+                    and source.get("number") == pr_number
+                ):
+                    development_linked = True
+                    break
+            if typename == "ConnectedEvent":
+                subject = node.get("subject") or {}
+                if (
+                    subject.get("__typename") == "PullRequest"
+                    and subject.get("number") == pr_number
+                ):
+                    development_linked = True
+                    break
+
+        if development_linked:
+            break
+
+        page_info = timeline_items.get("pageInfo", {}) or {}
+        if not page_info.get("hasNextPage"):
+            break
+        timeline_cursor = page_info.get("endCursor")
+        if not timeline_cursor:
+            break
 
     return closes_primary_issue, development_linked
 
@@ -280,14 +303,21 @@ def validate(
     errors: List[str] = []
 
     for field_name, allowed_values in ALLOWED_VALUES.items():
-        field_value = extract_field_value(body, field_name)
+        field_values = extract_field_values(body, field_name)
 
-        if not field_value:
+        if not field_values:
             errors.append(
                 f"Missing required PR metadata field '{field_name}' or empty value."
             )
             continue
 
+        if len(field_values) != 1:
+            errors.append(
+                f"Expected exactly one '{field_name}' field; found {len(field_values)}."
+            )
+            continue
+
+        field_value = field_values[0]
         if field_value not in allowed_values:
             allowed = " | ".join(allowed_values)
             errors.append(
