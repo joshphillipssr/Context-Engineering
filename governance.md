@@ -207,12 +207,12 @@ For architecture-level decisions, use ADR artifacts under `00-os/adr/` and the a
 1. **Create an Issue** (Executive Sponsor, AI Governance Manager, Business Analyst, or Implementation Specialist) defining: objective, scope, constraints, and definition of done
 2. **Create a branch and link it to the primary Issue** using any valid GitHub path that preserves deterministic linkage (recommended: `gh issue develop <ISSUE_NUMBER> --checkout`) (role occupant)
 3. **Implement on the branch** with focused commits and role-attributed commit messages
-4. **Open a Pull Request** using templates and checklists, including machine-readable PR metadata (see Role Attribution). PR description must link the primary Issue. Use `Closes #<ISSUE_NUMBER>` when the PR fully resolves the Issue; use `Refs #<ISSUE_NUMBER>` for related but non-closing linkage. For architecture/protected changes, include ADR linkage fields (`ADR-Required`, `Primary-ADR`, `ADR-Status-At-Merge`, `ADR-Supersession-Traceability`).
+4. **Open a Pull Request** using templates and checklists, including machine-readable PR metadata (see Role Attribution). PR description must link the primary Issue. Use `Closes #<ISSUE_NUMBER>` when the PR fully resolves the Issue; use `Refs #<ISSUE_NUMBER>` for related but non-closing linkage. For architecture/protected decision traceability, include ADR linkage fields (`ADR-Required`, `Primary-ADR`, `ADR-Status-At-Merge`, `ADR-Implementation-Rationale`, `ADR-Supersession-Traceability`).
 5. **Apply PR labels** (role occupant) immediately after PR creation using GitHub UI, API/automation, or `gh` to self-identify role and set initial status
 6. **Review**
 
    - Compliance Officer reviews for compliance (structure, security, scope, Plane A/B boundaries)
-   - Compliance Officer verifies ADR linkage fields for architecture/protected changes (`Primary-ADR`, `ADR-Status-At-Merge`, and supersession traceability when applicable)
+   - Compliance Officer verifies ADR linkage fields for architecture/protected decision traceability (`ADR-Required`, `Primary-ADR`, `ADR-Status-At-Merge`, `ADR-Implementation-Rationale`, and supersession traceability when applicable)
    - Compliance Officer posts the PR Review Report as a PR comment on the PR (required)
    - Reviewer updates PR labels to reflect outcome (approved / changes requested)
    - AI Governance Manager / Executive Sponsor makes final call for sensitive changes
@@ -225,11 +225,19 @@ For architecture-level decisions, use ADR artifacts under `00-os/adr/` and the a
 - The primary tracked Issue must show PR linkage in GitHub Development before merge; if platform behavior prevents this, record a documented exception with compensating evidence in the PR.
 - `gh issue develop <ISSUE_NUMBER> --checkout` is the recommended branch-linking path, but not the exclusive allowed path.
 - Issues must define objective, scope, constraints, and definition of done.
-- PRs that introduce or modify architecture/protected decisions must declare ADR linkage in PR metadata:
-  - `ADR-Required: Yes`
-  - `Primary-ADR: <ADR filename or ADR-ID>`
-  - `ADR-Status-At-Merge: Accepted|Exception`
-  - `ADR-Exception-Evidence: <required when status is Exception>`
+- PRs with architecture/protected decision implications must declare ADR applicability in PR metadata using one deterministic path:
+  - Decision-level change path (introduces/modifies/supersedes a durable decision):
+    - `ADR-Required: Yes`
+    - `Primary-ADR: <ADR filename or ADR-ID>`
+    - `ADR-Status-At-Merge: Accepted|Exception`
+    - `ADR-Exception-Evidence: <required when status is Exception>`
+    - `ADR-Implementation-Rationale: N/A`
+  - Implementation-only path under an existing accepted decision:
+    - `ADR-Required: No`
+    - `Primary-ADR: <existing ADR filename or ADR-ID>`
+    - `ADR-Status-At-Merge: Accepted`
+    - `ADR-Implementation-Rationale: <why this is implementation-only under the linked ADR>`
+    - `ADR-Exception-Evidence: N/A`
 - Replacing decisions must include supersession traceability in PR metadata (`ADR-Supersession-Traceability`) and reciprocal ADR metadata (`Supersedes` / `Superseded-By`) before merge.
 
 ### Issue/PR triage (blocker vs follow-up vs note)
@@ -250,7 +258,7 @@ Use the following triage classes for in-flight findings during Issue/PR work:
 - `governance.md` and `context-flow.md`
 - Anything under `00-os/` (operating system & guardrails)
 - Any change that affects Plane A vs Plane B boundaries
-- Any architecture/protected process decision without accepted ADR linkage (unless explicit Executive Sponsor-approved exception evidence is present)
+- Any architecture/protected process decision without required ADR decision traceability (unless explicit Executive Sponsor-approved exception evidence is present)
 
 ### Low-risk changes (can be fast-tracked)
 
@@ -496,15 +504,23 @@ For architecture/protected decisions, PR descriptions must also include:
 - `ADR-Required: Yes|No`
 - `Primary-ADR: <ADR filename>|ADR-<ID>|N/A`
 - `ADR-Status-At-Merge: Accepted|Exception|N/A`
+- `ADR-Implementation-Rationale: <required when ADR-Required is No>|N/A`
 - `ADR-Exception-Evidence: <required when ADR-Status-At-Merge is Exception>|N/A`
 - `ADR-Supersession-Traceability: Supersedes:<ADR-ID>|Superseded-By:<ADR-ID>|N/A`
 
 Rules:
 
-- Use `ADR-Required: Yes` when the PR introduces or modifies architecture decisions, operating-model structure, or protected-path policy/process decisions.
-- If `ADR-Required: Yes`, `Primary-ADR` must resolve to an ADR artifact and `ADR-Status-At-Merge` must be `Accepted` unless an Executive Sponsor-approved exception is documented.
+- Use `ADR-Required: Yes` when the PR introduces, modifies, or supersedes architecture decisions, operating-model structure, or protected-path policy/process decisions.
+- Use `ADR-Required: No` for implementation-only bugfix/refactor changes that execute under an existing accepted decision and do not introduce/modify/supersede a decision.
+- If `ADR-Required: Yes`, `Primary-ADR` must resolve to an ADR artifact created or updated for the decision change, and `ADR-Status-At-Merge` must be `Accepted` unless an Executive Sponsor-approved exception is documented.
+- If `ADR-Required: No`, `Primary-ADR` must resolve to an existing accepted ADR artifact, `ADR-Status-At-Merge` must be `Accepted`, and `ADR-Implementation-Rationale` is mandatory.
 - If `ADR-Status-At-Merge: Exception`, `ADR-Exception-Evidence` is mandatory and must include the compensating control/approval path.
 - If the decision replaces a prior decision, `ADR-Supersession-Traceability` must be non-`N/A` and match reciprocal ADR metadata updates.
+
+Examples:
+
+- Decision-level change (new ADR required): `ADR-Required: Yes`, `Primary-ADR: 0012-role-sync-authorization-boundary.md`, `ADR-Status-At-Merge: Accepted`, `ADR-Implementation-Rationale: N/A`.
+- Implementation-only change (existing ADR linkage, no new ADR): `ADR-Required: No`, `Primary-ADR: 0001-record-architecture-decisions.md`, `ADR-Status-At-Merge: Accepted`, `ADR-Implementation-Rationale: Security bugfix to workflow token handling under existing accepted auth decision; no decision change.`
 
 #### 3. GitHub labels (required for PRs)
 

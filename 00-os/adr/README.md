@@ -86,6 +86,23 @@ Current repository note:
 - `00-os/` is a protected path under current governance.
 - Therefore, ADR changes that establish or modify accepted operating-model decisions are treated as protected changes.
 
+## 5.1 ADR Trigger Calibration for PRs
+
+Use this deterministic distinction for PR-level ADR expectations:
+
+- New ADR required when a PR introduces, modifies, or supersedes a durable architecture or operating-model decision.
+- No new ADR required for implementation-only bugfix/refactor work that executes under an existing accepted decision.
+
+PR metadata expectations:
+
+- Decision-level path: `ADR-Required: Yes`, `Primary-ADR`, `ADR-Status-At-Merge`, and exception/supersession fields when applicable.
+- Implementation-only path: `ADR-Required: No`, `Primary-ADR` (existing accepted ADR), `ADR-Status-At-Merge: Accepted`, `ADR-Implementation-Rationale`.
+
+Examples:
+
+- Decision-level: new branch protection operating-model decision -> new ADR artifact required.
+- Implementation-only: security bugfix in existing workflow wiring under an accepted auth/governance ADR -> no new ADR artifact; existing ADR linkage + rationale required.
+
 ## 6. Supersession Rules (Reciprocal)
 
 When ADR `NNNN` supersedes ADR `MMMM`:

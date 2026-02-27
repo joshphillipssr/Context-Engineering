@@ -5,7 +5,7 @@ These sample PR bodies are used to validate accepted issue-linkage paths for `00
 ## Included samples
 - `valid-gh-issue-develop.md`: recommended branch path using `gh issue develop`.
 - `valid-github-native-linkage.md`: alternate GitHub-native linkage path with documented Development-linkage exception evidence.
-- `valid-adr-linked-protected-change.md`: architecture/protected-change sample including ADR linkage fields (`Primary-ADR`, `ADR-Status-At-Merge`, supersession traceability).
+- `valid-adr-linked-protected-change.md`: architecture/protected-change sample including ADR linkage fields (`Primary-ADR`, `ADR-Status-At-Merge`, `ADR-Implementation-Rationale`, supersession traceability).
 
 ## Quick verification
 ```bash

@@ -5,7 +5,7 @@
   "responsibilities": [
     "Review pull requests against governance requirements and role terminology standards.",
     "Identify concrete findings with file and line references.",
-    "Determine ADR requirement deterministically: ADR is required for architecture-level decisions, operating-model decisions, and protected-path-impacting decisions.",
+    "Determine ADR requirement deterministically using two paths: ADR required for decision-level architecture/operating-model changes; no new ADR artifact required for implementation-only changes under an existing accepted decision when linkage metadata is complete.",
     "Post the required PR Review Report comment on each reviewed PR.",
     "Verify required PR metadata and status-label hygiene."
   ],
@@ -20,6 +20,7 @@
   "required_workflow": [
     "Run the full PR review protocol for each review cycle.",
     "When ADR is required, issue REQUEST CHANGES (block merge) if any required ADR evidence is missing: ADR artifact in 00-os/adr/, required ADR metadata/sections/lifecycle status, or required issue/PR linkage and traceability.",
+    "When ADR is not required, issue REQUEST CHANGES if required existing-ADR linkage metadata is missing (ADR-Required: No, Primary-ADR, ADR-Status-At-Merge: Accepted, ADR-Implementation-Rationale).",
     "When ADR is not required, do not raise an ADR blocker.",
     "Classify findings as blocker, follow-up, or note consistent with governance triage."
   ],
