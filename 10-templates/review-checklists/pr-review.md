@@ -6,6 +6,7 @@
 - [ ] Development linkage requirement is satisfied: `Development-Linkage: Verified`, or `Development-Linkage: Exception` with compensating evidence
 - [ ] ADR applicability declared (`ADR-Required: Yes|No`)
 - [ ] If `ADR-Required: Yes`, PR includes `Primary-ADR` and `ADR-Status-At-Merge: Accepted|Exception`
+- [ ] If `ADR-Required: No`, PR includes existing ADR linkage (`Primary-ADR`, `ADR-Status-At-Merge: Accepted`, `ADR-Implementation-Rationale`)
 - [ ] If `ADR-Status-At-Merge: Exception`, `ADR-Exception-Evidence` exists and references Executive Sponsor-approved compensating control
 - [ ] At least one role label exists (role:implementation-specialist / role:compliance-officer / role:ai-governance-manager / role:business-analyst / role:executive-sponsor)
 - [ ] Exactly one status:* label exists
@@ -27,6 +28,7 @@
 - [ ] If `governance.md`, `context-flow.md`, or `00-os/` changed → Executive Sponsor approval required
 - [ ] If Plane A/B boundary changes detected → Executive Sponsor approval required
 - [ ] For architecture/protected decision changes, `Primary-ADR` resolves to existing ADR artifact and status at merge is acceptable
+- [ ] For implementation-only architecture/protected changes, existing accepted ADR linkage metadata is present and explicit
 - [ ] If replacing a prior decision, `ADR-Supersession-Traceability` is non-`N/A` and reciprocal ADR metadata updates are present (`Supersedes` / `Superseded-By`)
 
 ## Low-Risk Fast-Track

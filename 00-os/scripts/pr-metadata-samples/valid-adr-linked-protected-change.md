@@ -20,6 +20,7 @@
 - ADR-Required: Yes
 - Primary-ADR: 0001-record-architecture-decisions.md
 - ADR-Status-At-Merge: Accepted
+- ADR-Implementation-Rationale: N/A
 - ADR-Exception-Evidence: N/A
 - ADR-Supersession-Traceability: Supersedes: 0000
 
