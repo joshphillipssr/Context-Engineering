@@ -1,8 +1,11 @@
 """Unit tests for PR metadata validation logic."""
 
+import io
 import importlib.util
+import json
 from pathlib import Path
 import unittest
+from unittest import mock
 
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "validate-pr-metadata.py"
@@ -119,10 +122,101 @@ class ValidateMetadataTests(unittest.TestCase):
             errors,
         )
 
+    def test_duplicate_primary_role_field_fails(self):
+        body = make_body() + "\nPrimary-Role: Executive Sponsor"
+        errors = MODULE.validate(body=body, repo=None, pr_number=None, github_token=None)
+        self.assertIn(
+            "Expected exactly one 'Primary-Role' field; found 2.",
+            errors,
+        )
+
     def test_valid_sample_body_passes(self):
         body = (SAMPLE_DIR / "valid-gh-issue-develop.md").read_text(encoding="utf-8")
         errors = MODULE.validate(body=body, repo=None, pr_number=None, github_token=None)
         self.assertEqual([], errors)
+
+
+class QueryIssuePrLinkageTests(unittest.TestCase):
+    class _FakeResponse(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            self.close()
+            return False
+
+    def test_paginate_timeline_until_pr_link_found(self):
+        first_page = {
+            "data": {
+                "repository": {
+                    "pullRequest": {"closingIssuesReferences": {"nodes": [{"number": 88}]}},
+                    "issue": {
+                        "timelineItems": {
+                            "nodes": [
+                                {
+                                    "__typename": "CrossReferencedEvent",
+                                    "source": {
+                                        "__typename": "PullRequest",
+                                        "number": 42,
+                                    },
+                                }
+                            ],
+                            "pageInfo": {
+                                "hasNextPage": True,
+                                "endCursor": "cursor-1",
+                            },
+                        }
+                    },
+                }
+            }
+        }
+        second_page = {
+            "data": {
+                "repository": {
+                    "pullRequest": {"closingIssuesReferences": {"nodes": [{"number": 88}]}},
+                    "issue": {
+                        "timelineItems": {
+                            "nodes": [
+                                {
+                                    "__typename": "CrossReferencedEvent",
+                                    "source": {
+                                        "__typename": "PullRequest",
+                                        "number": 89,
+                                    },
+                                }
+                            ],
+                            "pageInfo": {
+                                "hasNextPage": False,
+                                "endCursor": None,
+                            },
+                        }
+                    },
+                }
+            }
+        }
+
+        def fake_urlopen(request, timeout=20):
+            del timeout
+            payload = json.loads(request.data.decode("utf-8"))
+            cursor = payload["variables"].get("timelineCursor")
+            if cursor is None:
+                document = first_page
+            elif cursor == "cursor-1":
+                document = second_page
+            else:
+                self.fail(f"Unexpected cursor: {cursor}")
+            return self._FakeResponse(json.dumps(document).encode("utf-8"))
+
+        with mock.patch.object(MODULE.urllib.request, "urlopen", side_effect=fake_urlopen):
+            closes_primary_issue, development_linked = MODULE.query_issue_pr_linkage(
+                repo="owner/repo",
+                pr_number=89,
+                issue_number=88,
+                github_token="token",
+            )
+
+        self.assertTrue(closes_primary_issue)
+        self.assertTrue(development_linked)
 
 
 if __name__ == "__main__":
