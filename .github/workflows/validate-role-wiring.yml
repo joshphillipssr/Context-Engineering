@@ -5,7 +5,7 @@ on:
     paths:
       - 00-os/role-registry.yml
       - 00-os/scripts/generate-role-wiring.py
-      - 00-os/scripts/tests/test_generate_role_wiring.py
+      - 00-os/scripts/tests/test_*.py
       - .github/workflows/sync-role-repos.yml
       - .github/workflows/publish-role-workstation-images.yml
       - .devcontainer-workstation/docker-compose.yml
@@ -17,7 +17,7 @@ on:
     paths:
       - 00-os/role-registry.yml
       - 00-os/scripts/generate-role-wiring.py
-      - 00-os/scripts/tests/test_generate_role_wiring.py
+      - 00-os/scripts/tests/test_*.py
       - .github/workflows/sync-role-repos.yml
       - .github/workflows/publish-role-workstation-images.yml
       - .devcontainer-workstation/docker-compose.yml
