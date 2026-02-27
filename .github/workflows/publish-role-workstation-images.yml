@@ -1,21 +1,24 @@
 name: Publish Role Workstation Images
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - .devcontainer-workstation/**
-      - 10-templates/agent-instructions/**
-      - 10-templates/compliance-officer-pr-review-brief.md
-      - .github/workflows/publish-role-workstation-images.yml
-  workflow_run:
-    workflows: ["Sync Role Repositories"]
-    types:
-      - completed
-    branches:
-      - main
   workflow_dispatch:
+    inputs:
+      legacy_fallback_ack:
+        description: Type ALLOW-LEGACY-FALLBACK to authorize emergency legacy publish
+        required: true
+        type: string
+      approval_issue_url:
+        description: Context-Engineering Issue URL approving emergency fallback use
+        required: true
+        type: string
+      approval_comment_url:
+        description: Approval comment URL (Executive Sponsor or delegated approver)
+        required: true
+        type: string
+      emergency_reason:
+        description: Short reason why implementation repo publish path cannot be used
+        required: true
+        type: string
 
 concurrency:
   group: publish-role-workstation-${{ github.ref }}
@@ -26,10 +29,42 @@ permissions:
   packages: write
 
 jobs:
-  publish:
+  authorize_fallback:
+    name: Authorize Legacy Fallback
     runs-on: ubuntu-latest
-    # Skip if triggered by workflow_run and sync failed
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      approved: ${{ steps.authorize.outputs.approved }}
+    steps:
+      - name: Validate emergency fallback authorization
+        id: authorize
+        env:
+          ACK: ${{ inputs.legacy_fallback_ack }}
+          ISSUE_URL: ${{ inputs.approval_issue_url }}
+          COMMENT_URL: ${{ inputs.approval_comment_url }}
+          REASON: ${{ inputs.emergency_reason }}
+        run: |
+          set -euo pipefail
+          if [ "$ACK" != "ALLOW-LEGACY-FALLBACK" ]; then
+            echo "::error::Legacy fallback authorization denied. Set legacy_fallback_ack to ALLOW-LEGACY-FALLBACK."
+            exit 1
+          fi
+          if [ -z "$ISSUE_URL" ] || [ -z "$COMMENT_URL" ] || [ -z "$REASON" ]; then
+            echo "::error::approval_issue_url, approval_comment_url, and emergency_reason are required."
+            exit 1
+          fi
+          {
+            echo "### Legacy fallback authorization"
+            echo
+            echo "- Approval issue: \`$ISSUE_URL\`"
+            echo "- Approval comment: \`$COMMENT_URL\`"
+            echo "- Reason: \`$REASON\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "approved=true" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: [authorize_fallback]
+    if: ${{ needs.authorize_fallback.outputs.approved == 'true' }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -111,11 +146,6 @@ jobs:
             echo "Found: $source_ref"
             echo "::notice::Sync workflow for commit $expected_ref may still be running or needs to be triggered."
             echo "::notice::Check sync-role-repos workflow: https://github.com/${{ github.repository }}/actions/workflows/sync-role-repos.yml"
-            
-            # If triggered by workflow_run, this means sync just completed but role repo isn't updated yet
-            if [ "${{ github.event_name }}" =  "workflow_run" ]; then
-              echo "::warning::Sync workflow completed but role repo not yet updated. This may indicate sync PR not yet merged."
-            fi
             
             exit 1
           fi

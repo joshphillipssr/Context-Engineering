@@ -69,6 +69,12 @@ Initiate rollback if any of the following occur post-cutover:
 2. Activate temporary legacy execution path
    - Re-enable mixed-layout execution updates in `Context-Engineering` only for impacted flows.
    - Use legacy `.github/workflows/sync-role-repos.yml` as temporary operational control point.
+   - Legacy execution workflows are emergency/manual only and require workflow dispatch authorization fields:
+     - `legacy_fallback_ack=ALLOW-LEGACY-FALLBACK`
+     - `approval_issue_url` (linked approval issue)
+     - `approval_comment_url` (approval comment evidence)
+     - `emergency_reason` (why split execution path is unavailable)
+   - For orchestrated fallback, dispatch `orchestrate-role-onboarding.yml`, which forwards the same authorization evidence to sync/publish fallback workflows.
 3. Stabilize and validate
    - Confirm role sync can complete using temporary legacy path.
    - Confirm no conflicting governance authority edits are introduced in rollback window.
@@ -86,4 +92,3 @@ Validation mode: tabletop + control-point verification (2026-02-26)
 - Legacy and split sync workflow control points confirmed present.
 - Trigger criteria and owner/approval escalation path documented.
 - Evidence capture requirements defined for incident and closure.
-

@@ -1,22 +1,24 @@
 name: Sync Role Repositories
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - governance.md
-      - 00-os/role-charters/**
-      - 10-templates/agent-instructions/**
-      - 10-templates/compliance-officer-pr-review-brief.md
-      - 10-templates/job-description-spec/**
-      - 10-templates/repo-starters/role-repo-template/templates/**
-      - 10-templates/repo-starters/role-repo-template/scripts/build-agent-job-description.py
-      - 10-templates/repo-starters/role-repo-template/scripts/render-role-repo-template.sh
-      - 10-templates/repo-starters/role-repo-template/scripts/sync-role-repo.sh
-      - .github/workflows/sync-role-repos.yml
   workflow_dispatch:
     inputs:
+      legacy_fallback_ack:
+        description: Type ALLOW-LEGACY-FALLBACK to authorize emergency legacy sync
+        required: true
+        type: string
+      approval_issue_url:
+        description: Context-Engineering Issue URL approving emergency fallback use
+        required: true
+        type: string
+      approval_comment_url:
+        description: Approval comment URL (Executive Sponsor or delegated approver)
+        required: true
+        type: string
+      emergency_reason:
+        description: Short reason why implementation repo sync path cannot be used
+        required: true
+        type: string
       role:
         description: Role slug to sync
         required: true
@@ -58,7 +60,41 @@ permissions:
   contents: read
 
 jobs:
+  authorize_fallback:
+    name: Authorize Legacy Fallback
+    runs-on: ubuntu-latest
+    outputs:
+      approved: ${{ steps.authorize.outputs.approved }}
+    steps:
+      - name: Validate emergency fallback authorization
+        id: authorize
+        env:
+          ACK: ${{ inputs.legacy_fallback_ack }}
+          ISSUE_URL: ${{ inputs.approval_issue_url }}
+          COMMENT_URL: ${{ inputs.approval_comment_url }}
+          REASON: ${{ inputs.emergency_reason }}
+        run: |
+          set -euo pipefail
+          if [ "$ACK" != "ALLOW-LEGACY-FALLBACK" ]; then
+            echo "::error::Legacy fallback authorization denied. Set legacy_fallback_ack to ALLOW-LEGACY-FALLBACK."
+            exit 1
+          fi
+          if [ -z "$ISSUE_URL" ] || [ -z "$COMMENT_URL" ] || [ -z "$REASON" ]; then
+            echo "::error::approval_issue_url, approval_comment_url, and emergency_reason are required."
+            exit 1
+          fi
+          {
+            echo "### Legacy fallback authorization"
+            echo
+            echo "- Approval issue: \`$ISSUE_URL\`"
+            echo "- Approval comment: \`$COMMENT_URL\`"
+            echo "- Reason: \`$REASON\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "approved=true" >> "$GITHUB_OUTPUT"
+
   sync:
+    needs: [authorize_fallback]
+    if: ${{ needs.authorize_fallback.outputs.approved == 'true' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

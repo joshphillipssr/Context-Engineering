@@ -3,6 +3,22 @@ name: Orchestrate Role Onboarding
 on:
   workflow_dispatch:
     inputs:
+      legacy_fallback_ack:
+        description: 'Type ALLOW-LEGACY-FALLBACK to authorize emergency legacy onboarding'
+        required: true
+        type: string
+      approval_issue_url:
+        description: 'Context-Engineering Issue URL approving emergency fallback use'
+        required: true
+        type: string
+      approval_comment_url:
+        description: 'Approval comment URL (Executive Sponsor or delegated approver)'
+        required: true
+        type: string
+      emergency_reason:
+        description: 'Short reason why implementation repo onboarding path cannot be used'
+        required: true
+        type: string
       role_slug:
         description: 'Role slug (e.g., implementation-specialist)'
         required: true
@@ -31,10 +47,43 @@ permissions:
   contents: read
 
 jobs:
+  authorize_fallback:
+    name: Authorize Legacy Fallback
+    runs-on: ubuntu-latest
+    outputs:
+      approved: ${{ steps.authorize.outputs.approved }}
+    steps:
+      - name: Validate emergency fallback authorization
+        id: authorize
+        env:
+          ACK: ${{ inputs.legacy_fallback_ack }}
+          ISSUE_URL: ${{ inputs.approval_issue_url }}
+          COMMENT_URL: ${{ inputs.approval_comment_url }}
+          REASON: ${{ inputs.emergency_reason }}
+        run: |
+          set -euo pipefail
+          if [ "$ACK" != "ALLOW-LEGACY-FALLBACK" ]; then
+            echo "::error::Legacy fallback authorization denied. Set legacy_fallback_ack to ALLOW-LEGACY-FALLBACK."
+            exit 1
+          fi
+          if [ -z "$ISSUE_URL" ] || [ -z "$COMMENT_URL" ] || [ -z "$REASON" ]; then
+            echo "::error::approval_issue_url, approval_comment_url, and emergency_reason are required."
+            exit 1
+          fi
+          {
+            echo "### Legacy fallback authorization"
+            echo
+            echo "- Approval issue: \`$ISSUE_URL\`"
+            echo "- Approval comment: \`$COMMENT_URL\`"
+            echo "- Reason: \`$REASON\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "approved=true" >> "$GITHUB_OUTPUT"
+
   preflight:
     name: Preflight Validation
     runs-on: ubuntu-latest
-    if: ${{ !inputs.skip_validation }}
+    needs: [authorize_fallback]
+    if: ${{ needs.authorize_fallback.outputs.approved == 'true' && !inputs.skip_validation }}
     outputs:
       validation_passed: ${{ steps.validate.outputs.passed }}
     steps:
@@ -83,8 +132,8 @@ jobs:
   sync:
     name: Sync Role Repository
     runs-on: ubuntu-latest
-    needs: [preflight]
-    if: ${{ always() && (needs.preflight.result == 'success' || inputs.skip_validation) }}
+    needs: [authorize_fallback, preflight]
+    if: ${{ always() && needs.authorize_fallback.outputs.approved == 'true' && (needs.preflight.result == 'success' || inputs.skip_validation) }}
     outputs:
       sync_status: ${{ steps.sync.outcome }}
       source_ref: ${{ steps.source_ref.outputs.ref }}
@@ -116,6 +165,10 @@ jobs:
           
           gh workflow run sync-role-repos.yml \
             --ref main \
+            --field legacy_fallback_ack="${{ inputs.legacy_fallback_ack }}" \
+            --field approval_issue_url="${{ inputs.approval_issue_url }}" \
+            --field approval_comment_url="${{ inputs.approval_comment_url }}" \
+            --field emergency_reason="${{ inputs.emergency_reason }}" \
             --field role="${{ inputs.role_slug }}" \
             --field source_ref="${{ steps.source_ref.outputs.ref }}" \
             $owner_arg \
@@ -219,8 +272,8 @@ jobs:
   publish:
     name: Publish Role Workstation Images
     runs-on: ubuntu-latest
-    needs: [sync, wait-for-sync]
-    if: ${{ !inputs.dry_run && needs.wait-for-sync.outputs.sync_completed == 'true' }}
+    needs: [authorize_fallback, sync, wait-for-sync]
+    if: ${{ needs.authorize_fallback.outputs.approved == 'true' && !inputs.dry_run && needs.wait-for-sync.outputs.sync_completed == 'true' }}
     steps:
       - name: Trigger publish workflow
         env:
@@ -229,7 +282,12 @@ jobs:
           set -euo pipefail
           echo "::group::Triggering publish workflow"
           
-          gh workflow run publish-role-workstation-images.yml --ref main
+          gh workflow run publish-role-workstation-images.yml \
+            --ref main \
+            --field legacy_fallback_ack="${{ inputs.legacy_fallback_ack }}" \
+            --field approval_issue_url="${{ inputs.approval_issue_url }}" \
+            --field approval_comment_url="${{ inputs.approval_comment_url }}" \
+            --field emergency_reason="${{ inputs.emergency_reason }}"
           
           echo "✅ Publish workflow triggered"
           echo "::endgroup::"
@@ -239,7 +297,7 @@ jobs:
   summary:
     name: Onboarding Summary
     runs-on: ubuntu-latest
-    needs: [preflight, sync, wait-for-sync, publish]
+    needs: [authorize_fallback, preflight, sync, wait-for-sync, publish]
     if: always()
     steps:
       - name: Generate summary
