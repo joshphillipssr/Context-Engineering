@@ -67,20 +67,16 @@ jobs:
           # GENERATED:BEGIN:ROLE_MATRIX
           - role_slug: implementation-specialist
             repo_name: context-engineering-role-implementation-specialist
-            app_id_secret: IMPLEMENTATION_SPECIALIST_APP_ID
-            private_key_secret: IMPLEMENTATION_SPECIALIST_APP_PRIVATE_KEY
+            app_id_value: 2852927
           - role_slug: compliance-officer
             repo_name: context-engineering-role-compliance-officer
-            app_id_secret: COMPLIANCE_OFFICER_APP_ID
-            private_key_secret: COMPLIANCE_OFFICER_APP_PRIVATE_KEY
+            app_id_value: 2853078
           - role_slug: systems-architect
             repo_name: context-engineering-role-systems-architect
-            app_id_secret: SYSTEMS_ARCHITECT_APP_ID
-            private_key_secret: SYSTEMS_ARCHITECT_APP_PRIVATE_KEY
+            app_id_value: 2853089
           - role_slug: hr-ai-agent-specialist
             repo_name: context-engineering-role-hr-ai-agent-specialist
-            app_id_secret: HR_AI_AGENT_SPECIALIST_APP_ID
-            private_key_secret: HR_AI_AGENT_SPECIALIST_APP_PRIVATE_KEY
+            app_id_value: 2885628
 # GENERATED:END:ROLE_MATRIX
 
     steps:
@@ -121,15 +117,80 @@ jobs:
           fi
           echo "owner=$owner" >> "$GITHUB_OUTPUT"
 
-      - name: Create role GitHub App token
-        if: ${{ steps.role_filter.outputs.run_sync == 'true' }}
-        id: app_token
+      # GENERATED:BEGIN:ROLE_APP_TOKEN_STEPS
+      - name: Create role GitHub App token (implementation-specialist)
+        if: ${{ steps.role_filter.outputs.run_sync == 'true' && matrix.role_slug == 'implementation-specialist' }}
+        id: app_token_implementation_specialist
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ secrets[matrix.app_id_secret] }}
-          private-key: ${{ secrets[matrix.private_key_secret] }}
+          app-id: ${{ matrix.app_id_value }}
+          private-key: ${{ secrets.IMPLEMENTATION_SPECIALIST_APP_PRIVATE_KEY }}
           owner: ${{ steps.owner.outputs.owner }}
           repositories: ${{ matrix.repo_name }}
+      - name: Create role GitHub App token (compliance-officer)
+        if: ${{ steps.role_filter.outputs.run_sync == 'true' && matrix.role_slug == 'compliance-officer' }}
+        id: app_token_compliance_officer
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ matrix.app_id_value }}
+          private-key: ${{ secrets.COMPLIANCE_OFFICER_APP_PRIVATE_KEY }}
+          owner: ${{ steps.owner.outputs.owner }}
+          repositories: ${{ matrix.repo_name }}
+      - name: Create role GitHub App token (systems-architect)
+        if: ${{ steps.role_filter.outputs.run_sync == 'true' && matrix.role_slug == 'systems-architect' }}
+        id: app_token_systems_architect
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ matrix.app_id_value }}
+          private-key: ${{ secrets.SYSTEMS_ARCHITECT_APP_PRIVATE_KEY }}
+          owner: ${{ steps.owner.outputs.owner }}
+          repositories: ${{ matrix.repo_name }}
+      - name: Create role GitHub App token (hr-ai-agent-specialist)
+        if: ${{ steps.role_filter.outputs.run_sync == 'true' && matrix.role_slug == 'hr-ai-agent-specialist' }}
+        id: app_token_hr_ai_agent_specialist
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ matrix.app_id_value }}
+          private-key: ${{ secrets.HR_AI_AGENT_SPECIALIST_APP_PRIVATE_KEY }}
+          owner: ${{ steps.owner.outputs.owner }}
+          repositories: ${{ matrix.repo_name }}
+
+      - name: Consolidate role GitHub App token
+        if: ${{ steps.role_filter.outputs.run_sync == 'true' }}
+        id: app_token
+        env:
+          ROLE_SLUG: ${{ matrix.role_slug }}
+          TOKEN_IMPLEMENTATION_SPECIALIST: ${{ steps.app_token_implementation_specialist.outputs.token }}
+          TOKEN_COMPLIANCE_OFFICER: ${{ steps.app_token_compliance_officer.outputs.token }}
+          TOKEN_SYSTEMS_ARCHITECT: ${{ steps.app_token_systems_architect.outputs.token }}
+          TOKEN_HR_AI_AGENT_SPECIALIST: ${{ steps.app_token_hr_ai_agent_specialist.outputs.token }}
+        run: |
+          set -euo pipefail
+          token=""
+          case "$ROLE_SLUG" in
+            implementation-specialist)
+              token="$TOKEN_IMPLEMENTATION_SPECIALIST"
+              ;;
+            compliance-officer)
+              token="$TOKEN_COMPLIANCE_OFFICER"
+              ;;
+            systems-architect)
+              token="$TOKEN_SYSTEMS_ARCHITECT"
+              ;;
+            hr-ai-agent-specialist)
+              token="$TOKEN_HR_AI_AGENT_SPECIALIST"
+              ;;
+            *)
+              echo "Unsupported role slug: $ROLE_SLUG"
+              exit 1
+              ;;
+          esac
+          if [ -z "$token" ]; then
+            echo "Failed to resolve GitHub App token for role $ROLE_SLUG"
+            exit 1
+          fi
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+# GENERATED:END:ROLE_APP_TOKEN_STEPS
 
       - name: Validate sync token is configured
         if: ${{ steps.role_filter.outputs.run_sync == 'true' }}

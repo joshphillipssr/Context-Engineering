@@ -127,8 +127,7 @@ templates:
   workflow_sync_matrix_item: |
     - role_slug: {{ slug }}
       repo_name: {{ repo_name }}
-      app_id_secret: {{ github_app.app_id_secret }}
-      private_key_secret: {{ github_app.private_key_secret }}
+      app_id_value: {{ github_app.app_id_value }}
   
   workflow_publish_matrix_item: |
     - role_profile: {{ slug }}

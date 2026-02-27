@@ -20,6 +20,57 @@ import re
 from typing import Dict, List, Any
 
 
+SECRET_NAME_FIELDS = ("app_id_secret", "private_key_secret", "installation_id_secret")
+SECRET_NAME_PATTERN = re.compile(r"^[A-Z][A-Z0-9_]*$")
+LIKELY_SECRET_VALUE_PATTERNS = (
+    (re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----", re.IGNORECASE), "private key material"),
+    (re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}\b"), "GitHub token-like value"),
+    (re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"), "GitHub fine-grained token-like value"),
+)
+
+
+def slug_to_constant(slug: str) -> str:
+    """Convert a role slug like implementation-specialist to IMPLEMENTATION_SPECIALIST."""
+    return slug.replace("-", "_").upper()
+
+
+def slug_to_identifier(slug: str) -> str:
+    """Convert a role slug like implementation-specialist to implementation_specialist."""
+    return slug.replace("-", "_")
+
+
+def validate_secret_name_field(role_slug: str, field_name: str, value: Any) -> None:
+    """Validate that a role registry secret field contains only a secret name, not a secret value."""
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"Role '{role_slug}' has empty or non-string github_app.{field_name}")
+
+    if "\n" in value or "\r" in value:
+        raise ValueError(
+            f"Role '{role_slug}' github_app.{field_name} must be a single-line secret name"
+        )
+
+    for pattern, description in LIKELY_SECRET_VALUE_PATTERNS:
+        if pattern.search(value):
+            raise ValueError(
+                f"Role '{role_slug}' github_app.{field_name} appears to contain {description}; "
+                "store only the secret name"
+            )
+
+    if not SECRET_NAME_PATTERN.fullmatch(value):
+        raise ValueError(
+            f"Role '{role_slug}' github_app.{field_name} must match {SECRET_NAME_PATTERN.pattern}"
+        )
+
+
+def validate_registry_roles(roles: List[Dict[str, Any]]) -> None:
+    """Fail fast when role registry secret-name fields contain unsafe values."""
+    for role in roles:
+        role_slug = role["slug"]
+        github_app = role["github_app"]
+        for field_name in SECRET_NAME_FIELDS:
+            validate_secret_name_field(role_slug, field_name, github_app.get(field_name))
+
+
 def load_registry(repo_root: Path) -> Dict[str, Any]:
     """Load the canonical role registry."""
     registry_path = repo_root / "00-os" / "role-registry.yml"
@@ -33,8 +84,64 @@ def generate_workflow_sync_matrix(roles: List[Dict]) -> str:
     for role in roles:
         lines.append(f"          - role_slug: {role['slug']}")
         lines.append(f"            repo_name: {role['repo_name']}")
-        lines.append(f"            app_id_secret: {role['github_app']['app_id_secret']}")
-        lines.append(f"            private_key_secret: {role['github_app']['private_key_secret']}")
+        lines.append(f"            app_id_value: {role['github_app']['app_id_value']}")
+    return "\n".join(lines)
+
+
+def generate_workflow_app_token_steps(roles: List[Dict]) -> str:
+    """Generate per-role app token creation steps with static secret references."""
+    lines = []
+
+    for role in roles:
+        slug = role["slug"]
+        slug_identifier = slug_to_identifier(slug)
+        slug_constant = slug_to_constant(slug)
+
+        lines.append(f"      - name: Create role GitHub App token ({slug})")
+        lines.append(
+            "        if: ${{ steps.role_filter.outputs.run_sync == 'true' && "
+            "matrix.role_slug == '" + slug + "' }}"
+        )
+        lines.append(f"        id: app_token_{slug_identifier}")
+        lines.append("        uses: actions/create-github-app-token@v1")
+        lines.append("        with:")
+        lines.append("          app-id: ${{ matrix.app_id_value }}")
+        lines.append(f"          private-key: ${{{{ secrets.{slug_constant}_APP_PRIVATE_KEY }}}}")
+        lines.append("          owner: ${{ steps.owner.outputs.owner }}")
+        lines.append("          repositories: ${{ matrix.repo_name }}")
+
+    lines.append("")
+    lines.append("      - name: Consolidate role GitHub App token")
+    lines.append("        if: ${{ steps.role_filter.outputs.run_sync == 'true' }}")
+    lines.append("        id: app_token")
+    lines.append("        env:")
+    lines.append("          ROLE_SLUG: ${{ matrix.role_slug }}")
+    for role in roles:
+        slug_identifier = slug_to_identifier(role["slug"])
+        lines.append(
+            f"          TOKEN_{slug_identifier.upper()}: ${{{{ steps.app_token_{slug_identifier}.outputs.token }}}}"
+        )
+    lines.append("        run: |")
+    lines.append("          set -euo pipefail")
+    lines.append('          token=""')
+    lines.append('          case "$ROLE_SLUG" in')
+    for role in roles:
+        slug = role["slug"]
+        slug_identifier = slug_to_identifier(slug)
+        lines.append(f"            {slug})")
+        lines.append(f"              token=\"$TOKEN_{slug_identifier.upper()}\"")
+        lines.append("              ;;")
+    lines.append("            *)")
+    lines.append('              echo "Unsupported role slug: $ROLE_SLUG"')
+    lines.append("              exit 1")
+    lines.append("              ;;")
+    lines.append("          esac")
+    lines.append('          if [ -z "$token" ]; then')
+    lines.append('            echo "Failed to resolve GitHub App token for role $ROLE_SLUG"')
+    lines.append("            exit 1")
+    lines.append("          fi")
+    lines.append('          echo "token=$token" >> "$GITHUB_OUTPUT"')
+
     return "\n".join(lines)
 
 
@@ -296,6 +403,8 @@ def main():
     repo_root = Path(__file__).parent.parent.parent
     registry = load_registry(repo_root)
     roles = registry['roles']
+
+    validate_registry_roles(roles)
     
     print(f"Loaded {len(roles)} roles from registry")
     
@@ -305,10 +414,13 @@ def main():
     sync_workflow = repo_root / ".github" / "workflows" / "sync-role-repos.yml"
     sync_matrix = generate_workflow_sync_matrix(roles)
     sync_choices = generate_workflow_dispatch_choices(roles)
+    sync_app_token_steps = generate_workflow_app_token_steps(roles)
     changed = update_file_with_generated(sync_workflow, "ROLE_MATRIX", sync_matrix, args.check)
     updates.append(("sync matrix", changed))
     changed = update_file_with_generated(sync_workflow, "ROLE_CHOICES", sync_choices, args.check)
     updates.append(("sync choices", changed))
+    changed = update_file_with_generated(sync_workflow, "ROLE_APP_TOKEN_STEPS", sync_app_token_steps, args.check)
+    updates.append(("sync app token steps", changed))
     
     # Update publish-role-workstation-images.yml workflow
     publish_workflow = repo_root / ".github" / "workflows" / "publish-role-workstation-images.yml"
