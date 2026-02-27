@@ -27,6 +27,19 @@ When opening a PR that introduces or updates ADR content:
 
 Keep exactly one primary issue reference in the PR body, and include Development-linkage evidence per repo workflow.
 
+## 3.1 When No New ADR Is Required
+
+If a PR is implementation-only (bugfix/refactor) and executes under an existing accepted decision, do not create a new ADR artifact.
+
+Instead, include explicit existing-ADR linkage in PR metadata:
+
+- `ADR-Required: No`
+- `Primary-ADR: <existing ADR filename or ADR-ID>`
+- `ADR-Status-At-Merge: Accepted`
+- `ADR-Implementation-Rationale: <why this is implementation-only under the linked ADR>`
+
+If the change introduces/modifies/supersedes a durable decision, this section does not apply; follow the new ADR flow.
+
 ## 4. Superseding ADR Flow
 
 When replacing an accepted ADR decision:

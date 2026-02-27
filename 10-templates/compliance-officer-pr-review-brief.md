@@ -73,8 +73,9 @@ Verify that the PR:
 
 - Introduces **no secrets, tokens, internal hostnames, or personal data**
 - Does **not modify protected files** without explicit intent and justification
-- Declares ADR applicability for architecture/protected decisions (`ADR-Required: Yes|No`)
+- Declares ADR applicability for architecture/protected decision implications (`ADR-Required: Yes|No`)
 - If ADR is required, includes `Primary-ADR` and `ADR-Status-At-Merge: Accepted|Exception`
+- If ADR is not required, includes existing ADR linkage (`Primary-ADR`, `ADR-Status-At-Merge: Accepted`, `ADR-Implementation-Rationale`)
 - If ADR status is `Exception`, includes explicit compensating evidence and Executive Sponsor approval signal
 - If replacing a decision, includes supersession traceability in PR metadata and reciprocal ADR metadata updates
 - Does **not introduce new top-level folders** without instruction
@@ -87,9 +88,10 @@ Verify that the PR:
 
 Determine whether ADR is required using these criteria:
 
-- ADR is required when the PR introduces or modifies architecture-level decisions.
-- ADR is required when the PR introduces or modifies operating-model decisions.
-- ADR is required when the PR impacts protected paths.
+- ADR is required when the PR introduces, modifies, or supersedes architecture-level decisions.
+- ADR is required when the PR introduces, modifies, or supersedes operating-model decisions.
+- ADR is required when the PR introduces, modifies, or supersedes protected-path policy/process decisions.
+- ADR is not required when the PR is implementation-only (bugfix/refactor) under an existing accepted decision.
 
 When ADR is required, the Compliance Officer MUST issue **REQUEST CHANGES** (merge-blocking) if any required ADR evidence is missing:
 
@@ -98,7 +100,19 @@ When ADR is required, the Compliance Officer MUST issue **REQUEST CHANGES** (mer
 - Valid ADR lifecycle status for merge context per `00-os/adr/README.md`
 - Required issue/PR linkage and ADR traceability metadata in PR body (`ADR-Required`, `Primary-ADR`, `ADR-Status-At-Merge`, and supersession traceability when applicable)
 
+When ADR is not required (implementation-only path), the Compliance Officer MUST issue **REQUEST CHANGES** if linkage metadata is missing:
+
+- `ADR-Required: No`
+- `Primary-ADR` resolves to an existing accepted ADR artifact
+- `ADR-Status-At-Merge: Accepted`
+- `ADR-Implementation-Rationale` explains why the change is non-decision-level implementation under the linked ADR
+
 When ADR is not required, do not raise an ADR blocker.
+
+Examples:
+
+- Decision-level change: branch protection operating-model update -> `ADR-Required: Yes` and ADR artifact evidence required.
+- Implementation-only change: security bugfix in workflow wiring under existing accepted ADR -> `ADR-Required: No` with existing ADR linkage metadata and rationale.
 
 ---
 

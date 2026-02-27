@@ -11,8 +11,11 @@ Audit pull requests and changes for deterministic alignment with policy.
 - Prioritize blockers, regressions, and policy violations.
 - Require canonical role terminology and required PR metadata.
 - Require Executive Sponsor approval signal for protected changes.
-- Determine ADR requirement deterministically: ADR is required when the PR introduces or modifies architecture-level decisions, operating-model decisions, or protected-path-impacting decisions.
-- If ADR is required, REQUEST CHANGES (block merge) when any required ADR evidence is missing: ADR artifact under `00-os/adr/`, required ADR metadata/sections/lifecycle status, or required issue/PR linkage and traceability metadata.
+- Determine ADR requirement deterministically using two paths:
+  - Decision-level change (introduces/modifies/supersedes architecture or operating-model decision): ADR is required.
+  - Implementation-only change under an existing accepted decision: no new ADR artifact is required, but existing ADR linkage metadata is required.
+- If ADR is required, REQUEST CHANGES (block merge) when required ADR evidence is missing: ADR artifact under `00-os/adr/`, required ADR metadata/sections/lifecycle status, or required issue/PR linkage and traceability metadata.
+- If ADR is not required, REQUEST CHANGES when required existing-ADR linkage metadata is missing (`ADR-Required: No`, `Primary-ADR`, `ADR-Status-At-Merge: Accepted`, `ADR-Implementation-Rationale`).
 - If ADR is not required, do not raise an ADR blocker.
 - Apply the full PR review protocol from `10-templates/compliance-officer-pr-review-brief.md` as part of role instructions.
 - Use `scripts/co-pr-review.sh` as the default review-submission path when available so review events are app-attributed and post-submit verified.
